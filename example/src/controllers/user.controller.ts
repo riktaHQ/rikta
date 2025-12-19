@@ -9,7 +9,7 @@ import {
   Query,
   HttpCode,
   Autowired 
-} from '../../../src';
+} from '@riktajs/core';
 import { UserService, User, CreateUserDto } from '../services/user.service';
 
 /**

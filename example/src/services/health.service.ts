@@ -1,4 +1,4 @@
-import { Injectable, Autowired, OnApplicationListen } from '../../../src';
+import { Injectable, Autowired, OnApplicationListen } from '@riktajs/core';
 import { AppConfig, APP_CONFIG, Logger, LOGGER } from '../config/app.config';
 
 export interface HealthStatus {
@@ -18,7 +18,6 @@ export interface HealthStatus {
 @Injectable()
 export class HealthService implements OnApplicationListen {
   private readonly startTime = Date.now();
-  private serverAddress = '';
 
   @Autowired(APP_CONFIG)
   private config!: AppConfig;
@@ -30,7 +29,6 @@ export class HealthService implements OnApplicationListen {
    * Called after the server starts listening
    */
   onApplicationListen(address: string): void {
-    this.serverAddress = address;
     this.logger.info(`Health endpoint ready at ${address}/health`);
   }
 

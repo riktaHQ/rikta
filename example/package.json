@@ -1,0 +1,37 @@
+{
+  "name": "rikta-example",
+  "version": "0.1.0",
+  "description": "example project for riktajs/core",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn src/main.ts"
+  },
+  "keywords": [
+    "framework",
+    "backend",
+    "typescript",
+    "fastify",
+    "decorators",
+    "dependency-injection",
+    "nestjs-like"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@riktajs/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

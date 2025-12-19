@@ -1,4 +1,4 @@
-import { Provider } from '../../../src';
+import { Provider } from '@riktajs/core';
 import { DATABASE_CONFIG, DatabaseConfig } from './app.config';
 
 /**

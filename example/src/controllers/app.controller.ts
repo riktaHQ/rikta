@@ -1,4 +1,4 @@
-import { Controller, Get, Autowired } from '../../../src';
+import { Controller, Get, Autowired } from '@riktajs/core';
 import { HealthService, HealthStatus } from '../services/health.service';
 import { AppConfig, APP_CONFIG } from '../config/app.config';
 

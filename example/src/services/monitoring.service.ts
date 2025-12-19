@@ -1,4 +1,4 @@
-import { Injectable, On, Autowired } from '../../../src';
+import { Injectable, On, Autowired } from '@riktajs/core';
 import { Logger, LOGGER } from '../config/app.config';
 
 /**
@@ -28,7 +28,7 @@ export class MonitoringService {
    * Called when a provider is initialized
    */
   @On('provider:init')
-  onProviderInit({ name, priority }: { name: string; priority: number }) {
+  onProviderInitialized({ name, priority }: { name: string; priority: number }) {
     if (priority > 0) {
       this.logger.debug(`Provider ${name} initialized (priority: ${priority})`);
     }

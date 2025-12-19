@@ -1,4 +1,4 @@
-import { Injectable, Autowired } from '../../../src';
+import { Injectable, Autowired } from '@riktajs/core';
 import { DatabaseService, Entity } from './database.service';
 import { Logger, LOGGER } from '../config/app.config';
 

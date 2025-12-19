@@ -1,9 +1,12 @@
 {
-  "name": "@rikta/core",
+  "name": "@riktajs/core",
   "version": "0.1.0",
-  "description": "A modern TypeScript backend framework with zero-config autowiring, powered by Fastify",
+  "description": "A fast and modern TypeScript backend framework with zero-config autowiring, powered by Fastify",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev --respawn src/index.ts",

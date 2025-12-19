@@ -1,4 +1,4 @@
-import { InjectionToken } from '../../../src';
+import { InjectionToken } from '@riktajs/core';
 
 /**
  * Application Configuration Interface

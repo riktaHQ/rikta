@@ -1,4 +1,4 @@
-import { Injectable, Autowired, OnProviderInit, OnProviderDestroy } from '../../../src';
+import { Injectable, Autowired, OnProviderInit, OnProviderDestroy } from '@riktajs/core';
 import { DatabaseConfig, Logger, DATABASE_CONFIG, LOGGER } from '../config/app.config';
 
 /**

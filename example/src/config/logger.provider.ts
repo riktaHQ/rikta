@@ -1,4 +1,4 @@
-import { Provider, Autowired } from '../../../src';
+import { Provider, Autowired } from '@riktajs/core';
 import { LOGGER, Logger, APP_CONFIG, AppConfig } from './app.config';
 
 /**
