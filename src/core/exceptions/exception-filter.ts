@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply, FastifyError } from 'fastify';
-import { HttpException, HttpExceptionResponse } from './http-exception';
+import { HttpException } from './http-exception';
 
 /**
  * Exception context passed to filters
@@ -156,10 +156,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         error: httpResponse.error,
         timestamp: httpResponse.timestamp,
         path,
-        ...(requestId && { requestId }),
-        ...(httpResponse.details && { details: httpResponse.details }),
-        ...(httpResponse.code && { code: httpResponse.code }),
-        ...(this.includeStack && { stack: exception.stack }),
+        ...(requestId ? { requestId } : {}),
+        ...(httpResponse.details ? { details: httpResponse.details } : {}),
+        ...(httpResponse.code ? { code: httpResponse.code } : {}),
+        ...(this.includeStack ? { stack: exception.stack } : {}),
       };
     }
 

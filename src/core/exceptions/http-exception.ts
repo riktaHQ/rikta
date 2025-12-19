@@ -61,8 +61,8 @@ export class HttpException extends Error {
         message: response.message,
         error: response.error ?? this.getDefaultError(statusCode),
         timestamp: this.timestamp,
-        ...(response.details && { details: response.details }),
-        ...(response.code && { code: response.code }),
+        ...(response.details ? { details: response.details } : {}),
+        ...(response.code ? { code: response.code } : {}),
       };
     }
 
