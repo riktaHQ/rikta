@@ -1,4 +1,7 @@
-# 🔧 Rikta Framework
+# 🎯 Rikta
+
+[![npm version](https://img.shields.io/npm/v/@rikta/core?color=blue&style=flat-square)](https://www.npmjs.com/package/@riktajs/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 A modern TypeScript backend framework with zero-config autowiring, powered by Fastify.
 
