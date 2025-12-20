@@ -29,14 +29,16 @@ Global prefix + Controller prefix + Route path
 
 ## Parameter Resolution
 
-| Decorator | Source |
-|-----------|--------|
-| `@Body()` | Request body |
-| `@Param('id')` | Route param |
-| `@Query('page')` | Query string |
-| `@Headers('auth')` | Header value |
-| `@Req()` | Full request |
-| `@Res()` | Full reply |
+| Decorator | Source | Validation Support |
+|-----------|--------|-------------------|
+| `@Body()` | Request body | ✅ Yes (Zod) |
+| `@Param()` | Route param | ✅ Yes (Zod) |
+| `@Query()` | Query string | ✅ Yes (Zod) |
+| `@Headers()` | Header value | ✅ Yes (Zod) |
+| `@Req()` | Full request | ❌ No |
+| `@Res()` | Full reply | ❌ No |
+
+See [Validation Guide](./validation.md) for details.
 
 ## Response Handling
 

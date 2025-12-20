@@ -68,7 +68,7 @@ Dependency Injection container:
 - **Token-based injection**: For interfaces
 - **Property injection**: `@Autowired()`
 
-📖 [Full Container Documentation](./container/README.md)
+📖 [Full Container Documentation](./dependency-injection.md)
 
 ### 3. Decorators (`decorators/`)
 
@@ -79,13 +79,13 @@ Metadata decorators:
 - `@Get`, `@Post`, etc. - Route methods
 - `@Autowired`, `@Inject` - Dependency injection
 
-📖 [Full Decorators Documentation](./decorators/README.md)
+📖 [Full Decorators Documentation](../api/decorators.md)
 
 ### 4. Router (`router/`)
 
 HTTP routing via Fastify:
 
-📖 [Full Router Documentation](./router/README.md)
+📖 [Full Router Documentation](./routing.md)
 
 ## Request Flow
 
