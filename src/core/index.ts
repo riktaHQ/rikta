@@ -9,6 +9,7 @@ export * from './router/router';
 export * from './application';
 export * from './decorators';
 export * from './exceptions';
+export * from './guards';
 
 // Re-export Zod for convenience
 // This allows users to import everything from '@riktajs/core':

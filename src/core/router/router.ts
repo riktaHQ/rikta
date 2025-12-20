@@ -11,6 +11,10 @@ import {
 import { Constructor, RouteDefinition, RouteContext } from '../types';
 import { ParamMetadata } from '../decorators/param.decorator';
 import { ValidationException } from '../exceptions/validation.exception';
+import { ForbiddenException } from '../exceptions/exceptions';
+import { ExecutionContextImpl } from '../guards/execution-context';
+import { getGuardsMetadata, GuardClass } from '../guards/use-guards.decorator';
+import type { CanActivate } from '../guards/can-activate.interface';
 
 /**
  * Router class
@@ -80,9 +84,17 @@ export class Router {
     // Get HTTP status code if set
     const statusCode = Reflect.getMetadata(HTTP_CODE_METADATA, controllerClass, route.handlerName);
 
+    // Get guards for this route (controller-level + method-level)
+    const guards = getGuardsMetadata(controllerClass, route.handlerName);
+
     // Create the route handler
     const routeHandler = async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        // Execute guards before handler
+        if (guards.length > 0) {
+          await this.executeGuards(guards, request, reply, controllerClass, route.handlerName);
+        }
+
         // Build route context
         const context: RouteContext = {
           request,
@@ -216,6 +228,62 @@ export class Router {
 
     // No schema provided, return raw value (backward compatible)
     return rawValue;
+  }
+
+  /**
+   * Execute guards for a route
+   * Guards are executed in order (controller-level first, then method-level)
+   * All guards must pass (AND logic)
+   * 
+   * @throws ForbiddenException if any guard returns false
+   */
+  private async executeGuards(
+    guards: GuardClass[],
+    request: FastifyRequest,
+    reply: FastifyReply,
+    controllerClass: Constructor,
+    handlerName: string | symbol
+  ): Promise<void> {
+    // Create execution context
+    const context = new ExecutionContextImpl(
+      request,
+      reply,
+      controllerClass,
+      handlerName
+    );
+
+    // Execute each guard sequentially
+    for (const GuardClass of guards) {
+      // Resolve guard instance from DI container
+      let guardInstance: CanActivate;
+      try {
+        guardInstance = this.container.resolve(GuardClass) as CanActivate;
+      } catch (error) {
+        throw new Error(
+          `Failed to resolve guard ${GuardClass.name}. ` +
+          `Make sure it is decorated with @Injectable(). ` +
+          `Original error: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+
+      // Verify the guard has canActivate method
+      if (typeof guardInstance.canActivate !== 'function') {
+        throw new Error(
+          `${GuardClass.name} does not implement CanActivate interface. ` +
+          `The guard must have a canActivate(context: ExecutionContext) method.`
+        );
+      }
+
+      // Execute the guard
+      const result = await guardInstance.canActivate(context);
+
+      // If guard returns false, deny access
+      if (result !== true) {
+        throw new ForbiddenException(
+          `Access denied by ${GuardClass.name}`
+        );
+      }
+    }
   }
 }
 
