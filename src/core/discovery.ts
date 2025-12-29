@@ -15,46 +15,27 @@ const DEFAULT_IGNORE_PATTERNS = [
 ];
 
 /**
- * Get the caller's directory from the stack trace
- * This is used to resolve relative paths from the caller's context,
- * not from where rikta-core is installed (e.g., node_modules)
+ * Get the entry point directory of the application.
+ * 
+ * Uses process.argv[1] which contains the path to the main script being executed.
+ * This is the cleanest way to determine the user's project directory when
+ * rikta-core is installed in node_modules.
+ * 
+ * Falls back to process.cwd() if argv[1] is not available.
  */
-function getCallerDirectoryFromStack(): string {
-  const originalPrepareStackTrace = Error.prepareStackTrace;
+function getEntryPointDirectory(): string {
+  const mainScript = process.argv[1];
   
-  try {
-    const err = new Error();
-    let callerFile: string | undefined;
-    
-    Error.prepareStackTrace = (_, stack) => stack;
-    const stack = err.stack as unknown as NodeJS.CallSite[];
-    
-    // Find the first file that's not part of rikta-core
-    for (const site of stack) {
-      const filename = site.getFileName();
-      if (filename && 
-          !filename.includes('discovery.ts') && 
-          !filename.includes('discovery.js') &&
-          !filename.includes('application.ts') &&
-          !filename.includes('application.js') &&
-          !filename.includes('rikta-core')) {
-        callerFile = filename;
-        break;
-      }
-    }
-    
-    if (callerFile) {
-      // Handle file:// URLs (ESM) and regular paths
-      const filePath = callerFile.startsWith('file://') 
-        ? new URL(callerFile).pathname 
-        : callerFile;
-      return path.dirname(filePath);
-    }
-    
-    return process.cwd();
-  } finally {
-    Error.prepareStackTrace = originalPrepareStackTrace;
+  if (mainScript) {
+    // Handle file:// URLs (ESM) and regular paths
+    const filePath = mainScript.startsWith('file://') 
+      ? new URL(mainScript).pathname 
+      : mainScript;
+    return path.dirname(filePath);
   }
+  
+  // Fallback to current working directory
+  return process.cwd();
 }
 
 /**
@@ -105,9 +86,9 @@ export async function discoverModules(
   patterns: string[] = ['./**/*.{ts,js}'],
   cwd?: string
 ): Promise<string[]> {
-  // If no cwd provided, resolve from caller's directory
+  // If no cwd provided, use the entry point directory (where the main script is)
   // This is crucial when rikta-core is installed in node_modules
-  const baseDir = cwd ?? getCallerDirectoryFromStack();
+  const baseDir = cwd ?? getEntryPointDirectory();
   
   // Resolve the base directory to absolute if needed
   const absoluteBaseDir = path.isAbsolute(baseDir) 
@@ -176,14 +157,14 @@ export async function discoverModules(
 }
 
 /**
- * Get the caller's directory (useful for relative pattern resolution)
+ * Get the entry point directory (where the main script is located)
  * 
- * This function walks the stack trace to find the first file that is NOT
- * part of rikta-core, making it work correctly when rikta-core is installed
- * as an external library in node_modules.
+ * This uses process.argv[1] to determine the directory of the script
+ * that started the Node.js process. This works correctly when rikta-core
+ * is installed as an external library in node_modules.
  * 
- * @returns The directory of the calling file, or process.cwd() if it cannot be determined
+ * @returns The directory of the main script, or process.cwd() as fallback
  */
 export function getCallerDirectory(): string {
-  return getCallerDirectoryFromStack();
+  return getEntryPointDirectory();
 }

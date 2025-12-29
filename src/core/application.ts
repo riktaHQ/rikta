@@ -45,12 +45,13 @@ export class RiktaFactory {
    * ```
    */
   static async create(config: RiktaConfig = {}): Promise<RiktaApplication> {
+    console.log('\n🚀 Rikta Framework Starting...\n');
     const callerDir = getCallerDirectory();
     let discoveredFiles: string[] = [];
     
     // Auto-discovery: scan for controllers and services
     if (!config.controllers) {
-      const patterns = config.autowired ?? ['./**'];
+      const patterns = config.autowired?.length ? config.autowired : ['./**'];
       console.log('\n🔍 Auto-discovering modules...');
       discoveredFiles = await discoverModules(patterns, callerDir);
       if (discoveredFiles.length > 0) {

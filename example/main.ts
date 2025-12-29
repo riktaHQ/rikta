@@ -16,7 +16,7 @@ async function bootstrap() {
   // Create the application with auto-discovery
   // All @Controller, @Injectable, and @Provider classes are found automatically!
   const app = await Rikta.create({
-    autowired: [__dirname],
+    autowired: ['./src'],  // Auto-discover modules in the 'src' directory
     port: 3000,
     logger: false,
   });
