@@ -13,7 +13,7 @@ describe('Application', () => {
 
   describe('Bootstrap', () => {
     it('should create application instance', async () => {
-      const app = await Rikta.create({ port: 0, logger: false, controllers: [] });
+      const app = await Rikta.create({ port: 0, logger: false, silent: true, controllers: [] });
       
       expect(app).toBeDefined();
       expect(app.server).toBeDefined();
@@ -33,6 +33,7 @@ describe('Application', () => {
       const app = await Rikta.create({ 
         port: 0, 
         logger: false,
+        silent: true,
         controllers: [TestController1]
       });
       await app.listen();
@@ -60,6 +61,7 @@ describe('Application', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         prefix: '/api/v1',
         controllers: [UserController1],
       });
@@ -89,6 +91,7 @@ describe('Application', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [SimpleController1],
       });
 
@@ -101,7 +104,7 @@ describe('Application', () => {
     });
 
     it('should provide access to Fastify instance', async () => {
-      const app = await Rikta.create({ port: 0, logger: false, controllers: [] });
+      const app = await Rikta.create({ port: 0, logger: false, silent: true, controllers: [] });
 
       expect(app.server).toBeDefined();
       expect(typeof app.server.get).toBe('function');
@@ -111,7 +114,7 @@ describe('Application', () => {
     });
 
     it('should allow registering Fastify plugins', async () => {
-      const app = await Rikta.create({ port: 0, logger: false, controllers: [] });
+      const app = await Rikta.create({ port: 0, logger: false, silent: true, controllers: [] });
 
       app.server.register(async (fastify) => {
         fastify.get('/plugin-route', () => ({ plugin: true }));
@@ -143,6 +146,7 @@ describe('Application', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [ErrorController1],
       });
       await app.listen();
@@ -161,7 +165,7 @@ describe('Application', () => {
   describe('Configuration', () => {
     it('should use default port when not specified', async () => {
       // Just test that config is applied correctly
-      const app = await Rikta.create({ logger: false, controllers: [] });
+      const app = await Rikta.create({ logger: false, silent: true, controllers: [] });
       
       // App should be created without errors
       expect(app).toBeDefined();

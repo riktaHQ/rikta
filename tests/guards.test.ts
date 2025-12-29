@@ -275,6 +275,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [TestController],
         logger: false,
+        silent: true,
       });
 
       const response = await app.server.inject({
@@ -306,6 +307,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [DeniedController],
         logger: false,
+        silent: true,
       });
 
       const response = await app.server.inject({
@@ -349,6 +351,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [MultiGuardController],
         logger: false,
+        silent: true,
       });
 
       const response = await app.server.inject({
@@ -401,6 +404,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [StopFirstController],
         logger: false,
+        silent: true,
       });
 
       const response = await app.server.inject({
@@ -436,6 +440,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [AsyncController],
         logger: false,
+        silent: true,
       });
 
       const response = await app.server.inject({
@@ -481,6 +486,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [AuthControllerDI],
         logger: false,
+        silent: true,
       });
 
       // Without valid token
@@ -540,6 +546,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [CombinedController],
         logger: false,
+        silent: true,
       });
 
       // Test combined guards
@@ -586,6 +593,7 @@ describe('Guards', () => {
       const app = await Rikta.create({
         controllers: [ContextController],
         logger: false,
+        silent: true,
       });
 
       await app.server.inject({

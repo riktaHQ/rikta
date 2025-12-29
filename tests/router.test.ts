@@ -34,7 +34,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(TestController);
+      router.registerController(TestController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -55,7 +55,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(TestController);
+      router.registerController(TestController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -76,7 +76,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(RootController);
+      router.registerController(RootController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -98,7 +98,7 @@ describe('Router', () => {
         }
       }
 
-      prefixedRouter.registerController(UserController);
+      prefixedRouter.registerController(UserController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -120,7 +120,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(UserController);
+      router.registerController(UserController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -140,7 +140,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(ItemController);
+      router.registerController(ItemController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -160,7 +160,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(UserController);
+      router.registerController(UserController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -181,7 +181,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(UserController);
+      router.registerController(UserController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -202,7 +202,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(AuthController);
+      router.registerController(AuthController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -226,7 +226,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(ItemController);
+      router.registerController(ItemController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -257,7 +257,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(GreetController);
+      router.registerController(GreetController, true);
       await server.ready();
 
       const response = await server.inject({
@@ -280,7 +280,7 @@ describe('Router', () => {
         }
       }
 
-      router.registerController(AsyncController);
+      router.registerController(AsyncController, true);
       await server.ready();
 
       const response = await server.inject({

@@ -47,6 +47,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -73,6 +74,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -94,6 +96,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -126,6 +129,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -148,6 +152,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -177,6 +182,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -200,6 +206,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -226,6 +233,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -335,6 +343,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 
@@ -360,6 +369,7 @@ describe('Lifecycle', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [],
       });
 

@@ -326,6 +326,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [UserController],
         exceptionFilter: { includeStack: false, logErrors: false },
       });
@@ -366,6 +367,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [ValidateController],
         exceptionFilter: { includeStack: false, logErrors: false },
       });
@@ -398,6 +400,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [ProtectedController],
         exceptionFilter: { includeStack: false, logErrors: false },
       });
@@ -426,6 +429,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [CrashController],
         exceptionFilter: { includeStack: false, logErrors: false },
       });
@@ -473,6 +477,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [CustomController],
         exceptionFilters: [CustomExceptionFilter],
         exceptionFilter: { logErrors: false },
@@ -522,6 +527,7 @@ describe('Exceptions', () => {
       const app = await Rikta.create({
         port: 0,
         logger: false,
+        silent: true,
         controllers: [FallbackController],
         exceptionFilters: [NotFoundOnlyFilter],
         exceptionFilter: { includeStack: false, logErrors: false },

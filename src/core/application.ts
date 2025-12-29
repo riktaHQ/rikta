@@ -115,9 +115,11 @@ class RiktaApplicationImpl implements RiktaApplication {
    */
   private setupExceptionHandler(): void {
     // Create global exception filter with config
+    // When silent mode is enabled, also disable exception logging unless explicitly enabled
+    const silent = this.config.silent ?? false;
     const globalFilter = new GlobalExceptionFilter({
       includeStack: this.config.exceptionFilter?.includeStack,
-      logErrors: this.config.exceptionFilter?.logErrors,
+      logErrors: this.config.exceptionFilter?.logErrors ?? (silent ? false : true),
     });
 
     // Register custom exception filters

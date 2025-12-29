@@ -47,7 +47,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(UserController);
-      router.registerController(UserController);
+      router.registerController(UserController, true);
 
       const response = await server.inject({
         method: 'POST',
@@ -85,7 +85,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(UserController2);
-      router.registerController(UserController2);
+      router.registerController(UserController2, true);
 
       const response = await server.inject({
         method: 'POST',
@@ -120,7 +120,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(ItemController);
-      router.registerController(ItemController);
+      router.registerController(ItemController, true);
 
       const response = await server.inject({
         method: 'POST',
@@ -153,7 +153,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(ItemController2);
-      router.registerController(ItemController2);
+      router.registerController(ItemController2, true);
 
       const response = await server.inject({
         method: 'GET',
@@ -180,7 +180,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(ProductController);
-      router.registerController(ProductController);
+      router.registerController(ProductController, true);
 
       const response = await server.inject({
         method: 'GET',
@@ -208,7 +208,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(UserController3);
-      router.registerController(UserController3);
+      router.registerController(UserController3, true);
 
       const validUUID = '550e8400-e29b-41d4-a716-446655440000';
       const response = await server.inject({
@@ -235,7 +235,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(ItemController3);
-      router.registerController(ItemController3);
+      router.registerController(ItemController3, true);
 
       const response = await server.inject({
         method: 'GET',
@@ -263,7 +263,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(ApiController);
-      router.registerController(ApiController);
+      router.registerController(ApiController, true);
 
       const response = await server.inject({
         method: 'GET',
@@ -292,7 +292,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(SecureController);
-      router.registerController(SecureController);
+      router.registerController(SecureController, true);
 
       const response = await server.inject({
         method: 'GET',
@@ -319,7 +319,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(CompatController);
-      router.registerController(CompatController);
+      router.registerController(CompatController, true);
 
       const response = await server.inject({
         method: 'POST',
@@ -342,7 +342,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(CompatController2);
-      router.registerController(CompatController2);
+      router.registerController(CompatController2, true);
 
       const response = await server.inject({
         method: 'POST',
@@ -376,7 +376,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(PostController);
-      router.registerController(PostController);
+      router.registerController(PostController, true);
 
       const response = await server.inject({
         method: 'PUT',
@@ -418,7 +418,7 @@ describe('Zod Validation Integration', () => {
       }
 
       container.register(TransformController);
-      router.registerController(TransformController);
+      router.registerController(TransformController, true);
 
       const response = await server.inject({
         method: 'POST',
