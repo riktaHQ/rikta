@@ -78,7 +78,11 @@ export class UserController {
 }
 
 // 4. Run it!
-const app = await Rikta.create({ port: 3000, autowired: [__dirname] });
+// autowired paths are resolved relative to your project, not node_modules!
+const app = await Rikta.create({ 
+  port: 3000, 
+  autowired: ['./src']  // Relative paths are resolved from YOUR project directory
+});
 await app.listen();
 console.log('🚀 Server running on http://localhost:3000');
 ```

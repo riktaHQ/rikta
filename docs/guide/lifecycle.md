@@ -46,7 +46,7 @@ app.close()
 Called after a provider is instantiated and dependencies injected:
 
 ```typescript
-import { Injectable, OnProviderInit } from '@rikta/core';
+import { Injectable, OnProviderInit } from '@riktajs/core';
 
 @Injectable({ priority: 100 })  // Higher = initialized first
 class DatabaseService implements OnProviderInit {
@@ -116,7 +116,7 @@ class MetricsService implements OnApplicationShutdown {
 For more flexibility, use the `@On()` decorator:
 
 ```typescript
-import { Injectable, On } from '@rikta/core';
+import { Injectable, On } from '@riktajs/core';
 
 @Injectable()
 class MonitoringService {
@@ -172,7 +172,7 @@ class UserService { }
 For advanced use cases, inject the EventBus directly:
 
 ```typescript
-import { Injectable, EventBus } from '@rikta/core';
+import { Injectable, EventBus } from '@riktajs/core';
 
 @Injectable()
 class CustomService {

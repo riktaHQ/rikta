@@ -28,6 +28,57 @@ class UserService { }
 class RequestLogger { }
 ```
 
+### @Provider(token)
+
+Marks a class as a custom provider. **Auto-registered!**
+
+The class must implement a `provide()` method that returns the value.
+Providers can inject dependencies via constructor or `@Autowired` properties.
+
+```typescript
+import { InjectionToken, Provider, Autowired } from '@riktajs/core';
+
+const APP_CONFIG = new InjectionToken<AppConfig>('app.config');
+
+// Simple value provider
+@Provider(APP_CONFIG)
+export class AppConfigProvider {
+  provide(): AppConfig {
+    return {
+      name: 'My App',
+      version: '1.0.0',
+    };
+  }
+}
+
+// Provider with dependencies
+const LOGGER = new InjectionToken<Logger>('logger');
+
+@Provider(LOGGER)
+export class LoggerProvider {
+  @Autowired(APP_CONFIG)
+  private config!: AppConfig;
+
+  provide(): Logger {
+    return createLogger({
+      appName: this.config.name,
+      level: 'info',
+    });
+  }
+}
+
+// Async provider
+const DATABASE = new InjectionToken<Database>('database');
+
+@Provider(DATABASE)
+export class DatabaseProvider {
+  async provide(): Promise<Database> {
+    const db = await connectToDatabase();
+    return db;
+  }
+}
+```
+
 ## Route Decorators
 
 ### @Get, @Post, @Put, @Patch, @Delete
@@ -169,7 +220,7 @@ constructor(
 ## Complete Example
 
 ```typescript
-import { InjectionToken } from '@rikta/core';
+import { InjectionToken } from '@riktajs/core';
 
 // Define tokens for interfaces
 const LOGGER = new InjectionToken<Logger>('logger');
@@ -218,6 +269,7 @@ export class UserController {
 |-----------|-------|
 | `@Controller(prefix?)` | HTTP controller (auto-registered) |
 | `@Injectable(opts?)` | DI service (auto-registered) |
+| `@Provider(token)` | Custom provider (auto-registered) |
 | `@Get`, `@Post`, etc. | Route methods |
 | `@Body`, `@Param`, `@Query` | Request data |
 | `@Autowired(token?)` | **Dependency injection** |

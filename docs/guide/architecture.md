@@ -6,6 +6,8 @@ This document describes the internal architecture of the Rikta framework.
 
 Rikta uses **auto-discovery** - no modules required!
 
+> **📦 Library Usage:** When you install `@riktajs/core` from npm, it resides in `node_modules`. The auto-discovery system automatically resolves paths relative to **your project directory**, not the library location. This means `./src` will correctly scan your project's `src` folder.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Rikta.create()                           │
@@ -43,6 +45,31 @@ export class UserController {
 const app = await Rikta.create({ port: 3000 });
 ```
 
+### Path Resolution (Library Usage)
+
+When `@riktajs/core` is installed in `node_modules`, the auto-discovery system intelligently resolves paths relative to **your calling code**, not the library location.
+
+```typescript
+// main.ts (in your project root)
+import { Rikta } from '@riktajs/core';
+
+const app = await Rikta.create({
+  port: 3000,
+  // These paths are resolved relative to THIS file's location,
+  // NOT relative to node_modules/@riktajs/core
+  autowired: [
+    './src/controllers',
+    './src/services',
+  ]
+});
+```
+
+**How it works internally:**
+1. `discoverModules()` detects the caller's file location via stack trace
+2. Relative paths like `./src` are resolved from that location
+3. Absolute paths are used as-is
+4. The library automatically excludes `node_modules`, `dist`, and test files
+
 ## Core Components
 
 ### 1. Registry (`registry.ts`)
@@ -50,7 +77,7 @@ const app = await Rikta.create({ port: 3000 });
 Global registry for auto-discovery:
 
 ```typescript
-import { registry } from '@rikta/core';
+import { registry } from '@riktajs/core';
 
 // Get all auto-discovered controllers
 const controllers = registry.getControllers();
@@ -76,6 +103,7 @@ Metadata decorators:
 
 - `@Controller` - HTTP request handler (auto-registered)
 - `@Injectable` - DI service (auto-registered)
+- `@Provider` - Custom provider (auto-registered)
 - `@Get`, `@Post`, etc. - Route methods
 - `@Autowired`, `@Inject` - Dependency injection
 

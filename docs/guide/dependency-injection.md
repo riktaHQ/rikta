@@ -51,7 +51,7 @@ For non-class dependencies (interfaces, config, primitives):
 ### Define Tokens
 
 ```typescript
-import { InjectionToken } from '@rikta/core';
+import { InjectionToken } from '@riktajs/core';
 
 interface DatabaseConfig {
   host: string;
@@ -70,7 +70,7 @@ export const LOGGER = new InjectionToken<Logger>('logger');
 ### Register Values
 
 ```typescript
-import { container } from '@rikta/core';
+import { container } from '@riktajs/core';
 
 // Before Rikta.create()
 container.registerValue(DB_CONFIG, {
@@ -161,6 +161,41 @@ container.registerProvider({
   useClass: ConsoleLogger,
 });
 ```
+
+### @Provider Decorator (Recommended)
+
+The cleanest way to create providers - **auto-discovered!**
+
+```typescript
+import { Provider, InjectionToken, Autowired } from '@riktajs/core';
+
+const APP_CONFIG = new InjectionToken<AppConfig>('app.config');
+
+@Provider(APP_CONFIG)
+export class AppConfigProvider {
+  provide(): AppConfig {
+    return {
+      name: 'My App',
+      version: '1.0.0',
+    };
+  }
+}
+
+// Providers can inject dependencies
+const LOGGER = new InjectionToken<Logger>('logger');
+
+@Provider(LOGGER)
+export class LoggerProvider {
+  @Autowired(APP_CONFIG)
+  private config!: AppConfig;
+
+  provide(): Logger {
+    return createLogger({ appName: this.config.name });
+  }
+}
+```
+
+📖 [Full @Provider Documentation](../api/decorators.md#providertoken)
 
 ## Scopes
 

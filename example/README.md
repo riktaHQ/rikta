@@ -165,3 +165,18 @@ curl http://localhost:3000/users
 | `OnApplicationListen` hook | `services/health.service.ts` |
 | `@On()` decorator | `services/monitoring.service.ts` |
 | Auto-discovery | `main.ts` (autowired: ['./src']) |
+
+## 📦 Path Resolution
+
+When using `@riktajs/core` from `node_modules`, relative paths in `autowired` are resolved from **your project's location**, not the library:
+
+```typescript
+// main.ts
+import { Rikta } from '@riktajs/core';
+
+// './src' is resolved relative to main.ts location
+const app = await Rikta.create({
+  port: 3000,
+  autowired: ['./src']  // Scans YOUR project's src/ folder
+});
+```

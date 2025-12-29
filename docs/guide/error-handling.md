@@ -49,7 +49,7 @@ import {
   NotFoundException, 
   BadRequestException,
   UnauthorizedException 
-} from 'rikta';
+} from '@riktajs/core';
 
 @Controller('/users')
 class UserController {
@@ -128,7 +128,7 @@ All exceptions return a consistent JSON structure:
 Create your own exceptions by extending `HttpException`:
 
 ```typescript
-import { HttpException } from 'rikta';
+import { HttpException } from '@riktajs/core';
 
 export class PaymentRequiredException extends HttpException {
   constructor(message: string = 'Payment Required') {
@@ -156,7 +156,7 @@ export class ValidationException extends HttpException {
 Create custom filters to handle specific exception types:
 
 ```typescript
-import { Catch, ExceptionFilter, ExceptionContext, Injectable } from 'rikta';
+import { Catch, ExceptionFilter, ExceptionContext, Injectable } from '@riktajs/core';
 
 @Injectable()
 @Catch(ValidationException)

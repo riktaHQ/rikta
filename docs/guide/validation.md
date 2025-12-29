@@ -16,7 +16,7 @@ Pass a Zod schema to the `@Body()` decorator:
 
 ```typescript
 import { z } from 'zod';
-import { Controller, Post, Body } from '@rikta/core';
+import { Controller, Post, Body } from '@riktajs/core';
 
 // Define schema
 const CreateUserSchema = z.object({
