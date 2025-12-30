@@ -10,6 +10,7 @@ export * from './application';
 export * from './decorators';
 export * from './exceptions';
 export * from './guards';
+export * from './config';
 
 // Re-export Zod for convenience
 // This allows users to import everything from '@riktajs/core':

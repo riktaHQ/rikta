@@ -40,3 +40,10 @@ export {
 
 // Catch Decorator
 export { Catch, CatchMetadata, CATCH_METADATA, getCatchMetadata } from './catch.decorator';
+
+// Config Exceptions
+export {
+  ConfigProviderAlreadyRegisteredException,
+  ConfigProviderNotFoundException,
+  ConfigProviderInstantiationException,
+} from './config.exceptions';

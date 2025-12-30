@@ -5,3 +5,4 @@ export * from './route.decorator';
 export * from './param.decorator';
 export * from './autowired.decorator';
 export * from './provider.decorator';
+export * from './config-property.decorator';

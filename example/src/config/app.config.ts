@@ -1,24 +1,6 @@
 import { InjectionToken } from '@riktajs/core';
 
 /**
- * Application Configuration Interface
- */
-export interface AppConfig {
-  name: string;
-  version: string;
-  environment: 'development' | 'production' | 'test';
-}
-
-/**
- * Database Configuration Interface
- */
-export interface DatabaseConfig {
-  host: string;
-  port: number;
-  name: string;
-}
-
-/**
  * Logger Interface
  */
 export interface Logger {
@@ -32,7 +14,7 @@ export interface Logger {
 // Injection Tokens
 // ============================================================================
 
-export const APP_CONFIG = new InjectionToken<AppConfig>('app.config');
-export const DATABASE_CONFIG = new InjectionToken<DatabaseConfig>('database.config');
+export const APP_CONFIG = 'APP_CONFIG' as const;
+export const DATABASE_CONFIG = 'DATABASE_CONFIG' as const;
 export const LOGGER = new InjectionToken<Logger>('logger');
 

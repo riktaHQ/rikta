@@ -1,5 +1,6 @@
 import { Provider, Autowired } from '@riktajs/core';
-import { LOGGER, Logger, APP_CONFIG, AppConfig } from './app.config';
+import { LOGGER, Logger, APP_CONFIG } from './app.config';
+import {AppConfigProvider} from "./app-config.provider";
 
 /**
  * Provides a logger instance
@@ -11,7 +12,7 @@ import { LOGGER, Logger, APP_CONFIG, AppConfig } from './app.config';
 export class LoggerProvider {
   // Inject the app config to customize the logger!
   @Autowired(APP_CONFIG)
-  private config!: AppConfig;
+  private config!: AppConfigProvider;
 
   provide(): Logger {
     const appName = this.config.name;

@@ -1,5 +1,6 @@
 import { Injectable, Autowired, OnApplicationListen } from '@riktajs/core';
-import { AppConfig, APP_CONFIG, Logger, LOGGER } from '../config/app.config';
+import { APP_CONFIG, Logger, LOGGER } from '../config/app.config';
+import {AppConfigProvider} from "../config/app-config.provider";
 
 export interface HealthStatus {
   status: 'ok' | 'degraded' | 'down';
@@ -20,7 +21,7 @@ export class HealthService implements OnApplicationListen {
   private readonly startTime = Date.now();
 
   @Autowired(APP_CONFIG)
-  private config!: AppConfig;
+  private config!: AppConfigProvider;
 
   @Autowired(LOGGER)
   private logger!: Logger;

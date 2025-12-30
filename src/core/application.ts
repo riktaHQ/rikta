@@ -156,13 +156,16 @@ class RiktaApplicationImpl implements RiktaApplication {
     // Emit discovery event
     await this.events.emit('app:discovery', { files: discoveredFiles });
 
-    // 1. Process @Provider classes first
+    // 1. Process config providers (register them in the container)
+    await this.processConfigProviders();
+
+    // 2. Process @Provider classes
     await this.processCustomProviders();
     await this.events.emit('app:providers', { 
       count: registry.getCustomProviders().length 
     });
 
-    // 2. Get and sort providers by priority
+    // 3. Get and sort providers by priority
     const providers = this.getSortedProviders();
     
     // 3. Register additional explicit providers
@@ -191,6 +194,23 @@ class RiktaApplicationImpl implements RiktaApplication {
     });
 
     if (!this.config.silent) console.log('\n✅ Application initialized successfully\n');
+  }
+
+  /**
+   * Process all config providers and register them in the container
+   */
+  private async processConfigProviders(): Promise<void> {
+    const configProviders = registry.getConfigProviderRegistrations();
+    if (configProviders.length === 0) return;
+
+    for (const { token, providerClass } of configProviders) {
+      // Register the config provider class in the container
+      // This allows it to be resolved via @Autowired(token)
+      this.container.registerProvider({
+        provide: token,
+        useClass: providerClass,
+      });
+    }
   }
 
   /**

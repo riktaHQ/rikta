@@ -1,6 +1,6 @@
 {
   "name": "@riktajs/core",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A fast and modern TypeScript backend framework with zero-config autowiring, powered by Fastify",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,6 +33,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "fast-glob": "3.3.3",
     "fastify": "5.3.2",
     "reflect-metadata": "0.2.2",

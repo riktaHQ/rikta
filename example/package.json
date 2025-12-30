@@ -23,7 +23,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@riktajs/core": "0.3.1"
+    "@riktajs/core": "file:.."
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

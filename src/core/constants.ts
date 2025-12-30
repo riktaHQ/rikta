@@ -67,6 +67,46 @@ export const AUTOWIRED_METADATA = Symbol('autowired:metadata');
  */
 export const PROVIDER_METADATA = Symbol('provider:metadata');
 
+// ============================================================================
+// Configuration Metadata Keys
+// ============================================================================
+
+/**
+ * Key for storing @Provider() metadata on config provider classes.
+ * 
+ * This metadata stores the injection token that identifies the config provider,
+ * allowing the auto-discovery mechanism to register it with the DI container.
+ * 
+ * @example
+ * ```typescript
+ * @Provider('APP_CONFIG')
+ * class AppConfigProvider extends AbstractConfigProvider {
+ *   // Token 'APP_CONFIG' is stored in metadata
+ * }
+ * ```
+ */
+export const CONFIG_PROVIDER_METADATA = Symbol('config:provider:metadata');
+
+/**
+ * Key for storing @ConfigProperty() metadata on config class properties.
+ * 
+ * This metadata maps class properties to environment variable names,
+ * supporting both explicit mapping and automatic upper_snake_case conversion.
+ * Stored as an array of `{ propertyKey: string, envKey: string }` objects.
+ * 
+ * @example
+ * ```typescript
+ * class DatabaseConfig {
+ *   @ConfigProperty('DB_HOST')  // explicit mapping
+ *   host: string;
+ * 
+ *   @ConfigProperty()  // auto-mapped to 'DB_PORT'
+ *   dbPort: number;
+ * }
+ * ```
+ */
+export const CONFIG_PROPERTY_METADATA = Symbol('config:property:metadata');
+
 /**
  * Parameter types for injection
  */

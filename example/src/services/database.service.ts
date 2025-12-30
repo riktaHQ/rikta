@@ -1,5 +1,6 @@
 import { Injectable, Autowired, OnProviderInit, OnProviderDestroy } from '@riktajs/core';
-import { DatabaseConfig, Logger, DATABASE_CONFIG, LOGGER } from '../config/app.config';
+import {Logger, DATABASE_CONFIG, LOGGER } from '../config/app.config';
+import {DatabaseConfigProvider} from "../config/database-config.provider";
 
 /**
  * Base entity interface
@@ -22,7 +23,7 @@ export class DatabaseService implements OnProviderInit, OnProviderDestroy {
   private isConnected = false;
 
   constructor(
-    @Autowired(DATABASE_CONFIG) private config: DatabaseConfig,
+    @Autowired(DATABASE_CONFIG) private config: DatabaseConfigProvider,
     @Autowired(LOGGER) private logger: Logger
   ) {}
 
@@ -33,7 +34,7 @@ export class DatabaseService implements OnProviderInit, OnProviderDestroy {
     // Simulate async connection
     await new Promise(resolve => setTimeout(resolve, 10));
     this.isConnected = true;
-    this.logger.info(`Database connected to ${this.config.host}:${this.config.port}/${this.config.name}`);
+    this.logger.info(`Database connected to ${this.config.dbHost}:${this.config.dbPort}/${this.config.dbName}`);
   }
 
   /**

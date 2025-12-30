@@ -97,6 +97,7 @@ Everything you need to build production-ready APIs.
 |-------|-------------|
 | [**Architecture**](./docs/guide/architecture.md) | How Rikta's auto-discovery works under the hood. |
 | [**Dependency Injection**](./docs/guide/dependency-injection.md) | Using `@Autowired`, tokens, and scopes. |
+| [**Configuration**](./docs/guide/configuration.md) | Type-safe configuration with .env and Zod validation. |
 | [**Routing**](./docs/guide/routing.md) | Controllers, methods, and parameter handling. |
 | [**Validation**](./docs/guide/validation.md) | **New!** Type-safe validation with Zod. |
 | [**Lifecycle**](./docs/guide/lifecycle.md) | Hooks (`OnProviderInit`) and the Event Bus. |

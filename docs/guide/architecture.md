@@ -21,7 +21,8 @@ Rikta uses **auto-discovery** - no modules required!
 │         ▼                   ▼                    ▼          │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
 │  │ @Controller  │    │ @Injectable  │    │  @Get, etc.  │  │
-│  │ auto-register│    │ auto-register│    │    Routes    │  │
+│  │ @Provider    │    │   Providers  │    │    Routes    │  │
+│  │ auto-register│    │ Config Provs │    │              │  │
 │  └──────────────┘    └──────────────┘    └──────────────┘  │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
@@ -74,7 +75,7 @@ const app = await Rikta.create({
 
 ### 1. Registry (`registry.ts`)
 
-Global registry for auto-discovery:
+Global registry for auto-discovery during the decoration phase:
 
 ```typescript
 import { registry } from '@riktajs/core';
@@ -85,6 +86,10 @@ const controllers = registry.getControllers();
 // Get all registered providers
 const providers = registry.getProviders();
 ```
+
+**Role:** The registry acts as a collection point when decorators are applied. During application initialization, all registered classes are transferred to the DI container for dependency resolution and lifecycle management.
+
+**Note:** Config providers registered via `@Provider` are automatically moved to the container during bootstrap, where they can be injected like any other dependency.
 
 ### 2. Container (`container/`)
 
@@ -114,6 +119,27 @@ Metadata decorators:
 HTTP routing via Fastify:
 
 📖 [Full Router Documentation](./routing.md)
+
+### 5. Configuration System
+
+Configuration providers extend `AbstractConfigProvider` and use the `@Provider` decorator:
+
+```typescript
+@Provider('APP_CONFIG')
+export class AppConfigProvider extends AbstractConfigProvider {
+  schema() { /* Zod schema */ }
+  // Properties decorated with @ConfigProperty
+}
+```
+
+**How it works:**
+1. **Registration:** `@Provider` decorator registers the config class in the registry
+2. **Bootstrap:** During `Rikta.create()`, config providers are transferred to the container
+3. **Resolution:** Config instances can be injected using `@Autowired(APP_CONFIG)`
+
+The container manages config provider instantiation and ensures singleton scope.
+
+📖 [Full Configuration Documentation](./configuration.md)
 
 ## Request Flow
 

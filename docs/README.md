@@ -13,6 +13,7 @@ Core concepts and features of the framework.
 
 - [Architecture](./guide/architecture.md) - How Rikta works under the hood
 - [Dependency Injection](./guide/dependency-injection.md) - The DI container and `@Autowired`
+- [Configuration](./guide/configuration.md) - Type-safe configuration with .env and Zod
 - [Routing](./guide/routing.md) - Controllers, routes, and parameters
 - [Validation](./guide/validation.md) - Type-safe validation with Zod
 - [Lifecycle](./guide/lifecycle.md) - Hooks and events

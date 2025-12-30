@@ -1,6 +1,7 @@
-import { Controller, Get, Autowired } from '@riktajs/core';
-import { HealthService, HealthStatus } from '../services/health.service';
-import { AppConfig, APP_CONFIG } from '../config/app.config';
+import {Controller, Get, Autowired} from '@riktajs/core';
+import {HealthService, HealthStatus} from '../services/health.service';
+import {APP_CONFIG} from '../config/app.config';
+import {AppConfigProvider} from "../config/app-config.provider";
 
 /**
  * Root Application Controller
@@ -11,7 +12,7 @@ export class AppController {
   private healthService!: HealthService;
 
   @Autowired(APP_CONFIG)
-  private config!: AppConfig;
+  private config!: AppConfigProvider;
 
   /**
    * GET /

@@ -32,9 +32,14 @@ class RequestLogger { }
 
 Marks a class as a custom provider. **Auto-registered!**
 
-The class must implement a `provide()` method that returns the value.
-Providers can inject dependencies via constructor or `@Autowired` properties.
+**Two Types of Providers:**
 
+1. **Custom Providers:** Classes with a `provide()` method that returns a value
+2. **Config Providers:** Classes extending `AbstractConfigProvider` with a `schema()` method
+
+The decorator automatically detects the provider type and registers it appropriately.
+
+**Custom Provider Example:**
 ```typescript
 import { InjectionToken, Provider, Autowired } from '@riktajs/core';
 
@@ -78,6 +83,37 @@ export class DatabaseProvider {
   }
 }
 ```
+
+**Config Provider Example:**
+```typescript
+import { Provider, AbstractConfigProvider, ConfigProperty } from '@riktajs/core';
+import { z } from 'zod';
+
+export const APP_CONFIG = 'APP_CONFIG' as const;
+
+@Provider(APP_CONFIG)
+export class AppConfigProvider extends AbstractConfigProvider {
+  schema() {
+    return z.object({
+      NODE_ENV: z.enum(['development', 'production', 'test']),
+      PORT: z.coerce.number().int().min(1).max(65535),
+    });
+  }
+
+  @ConfigProperty('NODE_ENV')
+  environment!: string;
+
+  @ConfigProperty()
+  port!: number;
+
+  constructor() {
+    super();
+    this.populate();
+  }
+}
+```
+
+📖 See [Configuration Guide](../guide/configuration.md) for complete config provider documentation.
 
 ## Route Decorators
 
