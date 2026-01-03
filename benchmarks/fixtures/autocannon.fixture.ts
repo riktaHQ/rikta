@@ -1,9 +1,5 @@
 import 'reflect-metadata';
-import { Injectable } from '../../src/core/decorators/injectable.decorator';
-import { Controller } from '../../src/core/decorators/controller.decorator';
-import { Get, Post } from '../../src/core/decorators/route.decorator';
-import { Autowired } from '../../src/core/decorators/autowired.decorator';
-import { Body } from '../../src/core/decorators/param.decorator';
+import { Injectable, Controller, Get, Post, Autowired, Body } from '@riktajs/core';
 
 interface User {
   id: string;

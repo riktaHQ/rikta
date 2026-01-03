@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
-.npmrc
 .artiforge
+packages/*/node_modules/
+packages/*/.artiforge
+packages/*/dist/
 
 # Build output
 dist/
@@ -11,6 +13,7 @@ dist/
 .vscode/
 *.swp
 *.swo
+.npmrc
 
 # OS
 .DS_Store

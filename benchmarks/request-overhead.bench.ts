@@ -4,7 +4,7 @@ import http from 'http';
 import Fastify from 'fastify';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
-import { RiktaFactory } from '../src/core/application';
+import { RiktaFactory } from '@riktajs/core';
 import { RequestUserService, RequestUserController } from './fixtures/request.fixture';
 import { NestRequestUserModule } from './fixtures/nestjs-request.fixture';
 

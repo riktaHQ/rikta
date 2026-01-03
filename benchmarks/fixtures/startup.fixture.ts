@@ -1,8 +1,5 @@
 import 'reflect-metadata';
-import { Injectable } from '../../src/core/decorators/injectable.decorator';
-import { Controller } from '../../src/core/decorators/controller.decorator';
-import { Get } from '../../src/core/decorators/route.decorator';
-import { Autowired } from '../../src/core/decorators/autowired.decorator';
+import { Injectable, Controller, Get, Autowired } from '@riktajs/core';
 
 @Injectable()
 export class StartupBenchService {

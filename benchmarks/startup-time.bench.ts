@@ -3,7 +3,7 @@ import { performance } from 'perf_hooks';
 import Fastify from 'fastify';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
-import { RiktaFactory } from '../src/core/application';
+import { RiktaFactory } from '@riktajs/core';
 import { StartupBenchService, StartupBenchController } from './fixtures/startup.fixture';
 import { NestStartupBenchModule } from './fixtures/nestjs-startup.fixture';
 

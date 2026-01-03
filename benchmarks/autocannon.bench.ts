@@ -3,7 +3,7 @@ import autocannon from 'autocannon';
 import Fastify from 'fastify';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
-import { RiktaFactory } from '../src/core/application';
+import { RiktaFactory } from '@riktajs/core';
 import { AutocannonDataService, AutocannonApiController } from './fixtures/autocannon.fixture';
 import { NestAutocannonModule } from './fixtures/nestjs-autocannon.fixture';
 
