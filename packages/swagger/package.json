@@ -1,0 +1,61 @@
+{
+  "name": "@riktajs/swagger",
+  "version": "0.1.0",
+  "description": "Automatic OpenAPI/Swagger documentation generation for Rikta Framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "rikta",
+    "swagger",
+    "openapi",
+    "documentation",
+    "fastify",
+    "typescript",
+    "decorators",
+    "api-docs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@riktajs/core": ">=0.4.0",
+    "fastify": ">=5.0.0",
+    "reflect-metadata": ">=0.2.0",
+    "zod": ">=3.20.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.1",
+    "fastify-plugin": "^5.0.1",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "devDependencies": {
+    "@riktajs/core": "*",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "fastify": "^5.3.2",
+    "reflect-metadata": "^0.2.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

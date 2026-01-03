@@ -11,6 +11,7 @@ export * from './decorators';
 export * from './exceptions';
 export * from './guards';
 export * from './config';
+export * from './metadata';
 
 // Re-export Zod for convenience
 // This allows users to import everything from '@riktajs/core':

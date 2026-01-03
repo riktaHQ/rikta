@@ -23,7 +23,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@riktajs/core": "*"
+    "@riktajs/core": "*",
+    "@riktajs/swagger": "*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

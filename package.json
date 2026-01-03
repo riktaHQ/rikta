@@ -11,9 +11,11 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev --workspace=example",
-    "test": "npm run test --workspace=@riktajs/core",
+    "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=@riktajs/core",
-    "test:coverage": "npm run test:coverage --workspace=@riktajs/core",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test:core": "npm run test --workspace=@riktajs/core",
+    "test:swagger": "npm run test --workspace=@riktajs/swagger",
     "example": "npm run dev --workspace=example",
     "bench": "npm run bench --workspace=benchmarks",
     "bench:startup": "npm run bench:startup --workspace=benchmarks",

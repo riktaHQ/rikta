@@ -1,71 +1,72 @@
 // ============================================================================
 // Metadata Keys for Reflect API
+// Using Symbol.for() to ensure symbols are shared across packages
 // ============================================================================
 
 /**
  * Key for storing controller metadata (prefix, routes)
  */
-export const CONTROLLER_METADATA = Symbol('controller:metadata');
+export const CONTROLLER_METADATA = Symbol.for('rikta:controller:metadata');
 
 /**
  * Key for storing route definitions on a controller
  */
-export const ROUTES_METADATA = Symbol('routes:metadata');
+export const ROUTES_METADATA = Symbol.for('rikta:routes:metadata');
 
 /**
  * Key for storing injectable options
  */
-export const INJECTABLE_METADATA = Symbol('injectable:metadata');
+export const INJECTABLE_METADATA = Symbol.for('rikta:injectable:metadata');
 
 /**
  * Key for storing parameter injection metadata
  */
-export const PARAM_METADATA = Symbol('param:metadata');
+export const PARAM_METADATA = Symbol.for('rikta:param:metadata');
 
 /**
  * Key for storing guards
  */
-export const GUARDS_METADATA = Symbol('guards:metadata');
+export const GUARDS_METADATA = Symbol.for('rikta:guards:metadata');
 
 /**
  * Key for storing interceptors
  */
-export const INTERCEPTORS_METADATA = Symbol('interceptors:metadata');
+export const INTERCEPTORS_METADATA = Symbol.for('rikta:interceptors:metadata');
 
 /**
  * Key for storing middleware
  */
-export const MIDDLEWARE_METADATA = Symbol('middleware:metadata');
+export const MIDDLEWARE_METADATA = Symbol.for('rikta:middleware:metadata');
 
 /**
  * Key for storing response status code
  */
-export const HTTP_CODE_METADATA = Symbol('http:code:metadata');
+export const HTTP_CODE_METADATA = Symbol.for('rikta:http:code:metadata');
 
 /**
  * Key for storing response headers
  */
-export const HEADERS_METADATA = Symbol('headers:metadata');
+export const HEADERS_METADATA = Symbol.for('rikta:headers:metadata');
 
 /**
  * Key for storing @Inject() metadata on constructor parameters
  */
-export const INJECT_METADATA = Symbol('inject:metadata');
+export const INJECT_METADATA = Symbol.for('rikta:inject:metadata');
 
 /**
  * Key for storing Zod validation schema on parameters
  */
-export const ZOD_SCHEMA_METADATA = Symbol('zod:schema:metadata');
+export const ZOD_SCHEMA_METADATA = Symbol.for('rikta:zod:schema:metadata');
 
 /**
  * Key for storing @Autowired() property injection metadata
  */
-export const AUTOWIRED_METADATA = Symbol('autowired:metadata');
+export const AUTOWIRED_METADATA = Symbol.for('rikta:autowired:metadata');
 
 /**
  * Key for storing @Provider() metadata
  */
-export const PROVIDER_METADATA = Symbol('provider:metadata');
+export const PROVIDER_METADATA = Symbol.for('rikta:provider:metadata');
 
 // ============================================================================
 // Configuration Metadata Keys

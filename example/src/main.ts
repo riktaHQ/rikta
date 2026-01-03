@@ -6,12 +6,14 @@
  * - Configuration management with @Provider and @ConfigProperty
  * - Dependency injection with @Autowired
  * - REST API with full CRUD operations
+ * - Automatic Swagger/OpenAPI documentation
  *
  * No manual provider registration needed - everything is auto-discovered!
  */
 
 import { Rikta } from '@riktajs/core';
-import {APP_CONFIG} from "./config/app.config";
+import { swaggerPlugin } from '@riktajs/swagger';
+import { APP_CONFIG } from "./config/app.config";
 
 async function bootstrap() {
   // Create the application with auto-discovery
@@ -22,10 +24,27 @@ async function bootstrap() {
   });
 
   const container = app.getContainer();
-  const config = container.resolve(APP_CONFIG)
+  const config = container.resolve(APP_CONFIG);
+
+  // Register Swagger plugin for automatic API documentation
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await app.server.register(swaggerPlugin as any, {
+    info: {
+      title: config.name || 'Rikta Example API',
+      version: '1.0.0',
+      description: 'Example API demonstrating Rikta Framework with automatic Swagger documentation',
+    },
+    config: {
+      servers: [
+        { url: `http://localhost:${process.env.PORT || 3000}`, description: 'Development' },
+      ],
+    },
+  });
 
   await app.listen();
   console.log('🚀 Rikta Example App Starting...', config.name);
+  console.log(`📚 Swagger UI: http://localhost:${process.env.PORT || 3000}/docs`);
+  console.log(`📋 OpenAPI JSON: http://localhost:${process.env.PORT || 3000}/docs/json`);
 }
 
 bootstrap().catch(console.error);

@@ -1,4 +1,5 @@
 import {Controller, Get, Autowired} from '@riktajs/core';
+import {ApiTags, ApiOperation, ApiResponse} from '@riktajs/swagger';
 import {HealthService, HealthStatus} from '../services/health.service';
 import {APP_CONFIG} from '../config/app.config';
 import {AppConfigProvider} from "../config/app-config.provider";
@@ -6,6 +7,7 @@ import {AppConfigProvider} from "../config/app-config.provider";
 /**
  * Root Application Controller
  */
+@ApiTags('Application')
 @Controller()
 export class AppController {
   @Autowired()
@@ -19,6 +21,8 @@ export class AppController {
    * Application info
    */
   @Get()
+  @ApiOperation({ summary: 'Get application info', description: 'Returns basic application information and available endpoints' })
+  @ApiResponse({ status: 200, description: 'Application information' })
   getInfo() {
     return {
       name: this.config.name,
@@ -37,6 +41,8 @@ export class AppController {
    * Health check endpoint
    */
   @Get('/health')
+  @ApiOperation({ summary: 'Health check', description: 'Returns the current health status of the application' })
+  @ApiResponse({ status: 200, description: 'Application is healthy' })
   getHealth(): HealthStatus {
     return this.healthService.getStatus();
   }
