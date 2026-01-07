@@ -1,0 +1,63 @@
+{
+  "name": "@riktajs/typeorm",
+  "version": "0.1.0",
+  "description": "TypeORM integration for Rikta Framework with lifecycle-based connection management",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "rikta",
+    "typeorm",
+    "orm",
+    "database",
+    "typescript",
+    "decorators",
+    "dependency-injection",
+    "postgresql",
+    "mysql",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@riktajs/core": ">=0.4.2",
+    "reflect-metadata": ">=0.2.0",
+    "typeorm": ">=0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "typeorm": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@riktajs/core": "*",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "better-sqlite3": "^11.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+
