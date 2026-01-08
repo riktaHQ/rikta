@@ -130,7 +130,7 @@ export async function handleDev(options: DevCommandOptions): Promise<void> {
   try {
     if (options.watch) {
       // Watch mode with auto-restart
-      const tscArgs = ['tsc', '--watch', '--incremental', '--preserveWatchOutput'];
+      const tscArgs = ['tsc', '--watch', '--preserveWatchOutput'];
 
       const tscProcess = execa('npx', tscArgs, {
         cwd,
@@ -162,8 +162,7 @@ export async function handleDev(options: DevCommandOptions): Promise<void> {
           }
 
           // TypeScript outputs this when compilation is complete
-          if (output.includes('Watching for file changes') ||
-              output.includes('Found 0 errors')) {
+          if (output.includes('Watching for file changes')) {
             compilationCount++;
 
             if (!serverStarted) {
@@ -171,9 +170,11 @@ export async function handleDev(options: DevCommandOptions): Promise<void> {
               logger.step(4, 4, `Starting server on port ${options.port}...`);
 
               // Wait for dist/index.js to exist
-              const distReady = await waitForDistFolder(distPath, 10000);
+              const distReady = await waitForDistFolder(distPath, 15000);
               if (!distReady) {
                 logger.error('Compilation seems complete but dist/index.js not found');
+                logger.error('This usually means TypeScript found errors that prevented compilation.');
+                logger.info('Check your TypeScript configuration and source files.');
                 return;
               }
 
@@ -190,9 +191,11 @@ export async function handleDev(options: DevCommandOptions): Promise<void> {
           }
 
           // Show compilation errors
-          if (output.includes('error TS')) {
-            logger.error('TypeScript compilation error:');
-            console.log(output);
+          if (output.includes('error TS') || output.includes('Found') && output.includes('error')) {
+            if (!options.verbose) {
+              // Only show errors if not in verbose mode (in verbose mode they're already shown)
+              process.stdout.write(output);
+            }
           }
         });
       }
