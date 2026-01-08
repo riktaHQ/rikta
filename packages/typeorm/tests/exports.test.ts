@@ -10,10 +10,6 @@ describe('Package Exports', () => {
     it('should export TYPEORM_ENTITY_MANAGER', () => {
       expect(TypeOrmPlugin.TYPEORM_ENTITY_MANAGER).toBeDefined();
     });
-
-    it('should export TYPEORM_CONFIG', () => {
-      expect(TypeOrmPlugin.TYPEORM_CONFIG).toBeDefined();
-    });
   });
 
   describe('Providers', () => {
@@ -30,17 +26,6 @@ describe('Package Exports', () => {
     it('should export configureTypeOrm', () => {
       expect(TypeOrmPlugin.configureTypeOrm).toBeDefined();
       expect(typeof TypeOrmPlugin.configureTypeOrm).toBe('function');
-    });
-  });
-
-  describe('Configuration', () => {
-    it('should export TypeOrmConfigProvider', () => {
-      expect(TypeOrmPlugin.TypeOrmConfigProvider).toBeDefined();
-      expect(typeof TypeOrmPlugin.TypeOrmConfigProvider).toBe('function');
-    });
-
-    it('should export TypeOrmConfigSchema', () => {
-      expect(TypeOrmPlugin.TypeOrmConfigSchema).toBeDefined();
     });
   });
 

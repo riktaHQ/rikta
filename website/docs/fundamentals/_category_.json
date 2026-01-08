@@ -1,0 +1,9 @@
+{
+  "label": "Fundamentals",
+  "position": 3,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Deep dive into the core concepts of Rikta."
+  }
+}

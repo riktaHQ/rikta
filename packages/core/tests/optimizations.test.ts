@@ -9,6 +9,7 @@ import { Body, Param, Query, Headers, Req, Res } from '../src/core/decorators/pa
 import { Injectable } from '../src/core/decorators/injectable.decorator';
 import { UseGuards, CanActivate, ExecutionContext } from '../src/core/guards';
 import { RiktaFactory } from '../src/core/application';
+import { resetEnvLoaded } from '../src/core/config/env-loader';
 
 /**
  * Tests for critical optimization paths:
@@ -459,6 +460,7 @@ describe('Silent Mode Configuration', () => {
   beforeEach(() => {
     Container.reset();
     Registry.reset();
+    resetEnvLoaded();
   });
 
   it('should suppress console output when silent: true', async () => {

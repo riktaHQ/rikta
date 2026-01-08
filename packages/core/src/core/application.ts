@@ -21,20 +21,28 @@ import {
   createExceptionHandler,
   getCatchMetadata
 } from './exceptions';
+import { loadEnvFiles } from './config/env-loader';
 
 /**
  * RiktaFactory - Bootstrap the application
  * 
  * Creates and initializes the Rikta application with auto-discovery.
  * All classes decorated with @Controller are automatically registered.
+ * 
+ * .env files are loaded automatically at the start of create(), so environment
+ * variables are immediately available in your main script.
  */
 export class RiktaFactory {
   /**
    * Create and bootstrap the application
    * 
+   * .env files are loaded automatically before any initialization,
+   * making environment variables available immediately.
+   * 
    * @example
    * ```typescript
    * // Auto-discovery from current directory (default)
+   * // process.env variables are available immediately after this line
    * const app = await Rikta.create({ port: 3000 });
    * 
    * // Auto-discovery from specific paths
@@ -45,6 +53,10 @@ export class RiktaFactory {
    * ```
    */
   static async create(config: RiktaConfig = {}): Promise<RiktaApplication> {
+    // Load .env files FIRST, before anything else
+    // This ensures environment variables are available immediately
+    loadEnvFiles();
+    
     const silent = config.silent ?? false;
     if (!silent) console.log('\n🚀 Rikta Framework Starting...\n');
     const callerDir = getCallerDirectory();
@@ -145,6 +157,8 @@ class RiktaApplicationImpl implements RiktaApplication {
    * Initialize the application
    */
   async init(discoveredFiles: string[] = []): Promise<void> {
+    // Note: .env files are already loaded in create() before this point
+    
     // Emit discovery event
     await this.events.emit('app:discovery', { files: discoveredFiles });
 

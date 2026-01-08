@@ -1,0 +1,9 @@
+{
+  "label": "Database",
+  "position": 6,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Connect Rikta to databases using TypeORM and other ORMs."
+  }
+}

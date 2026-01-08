@@ -26,20 +26,16 @@
 
 import { DataSource, DataSourceOptions, EntityManager } from 'typeorm';
 import { 
-  Injectable, 
-  Autowired, 
   OnProviderInit, 
   OnProviderDestroy,
   Container
 } from '@riktajs/core';
 import { 
   TYPEORM_DATA_SOURCE, 
-  TYPEORM_ENTITY_MANAGER, 
-  TYPEORM_CONFIG,
+  TYPEORM_ENTITY_MANAGER,
   getDataSourceToken,
   getEntityManagerToken,
 } from '../constants.js';
-import { TypeOrmConfigProvider } from '../config/typeorm-config.provider.js';
 import type { TypeOrmProviderOptions } from '../types.js';
 
 /**
@@ -49,9 +45,10 @@ import type { TypeOrmProviderOptions } from '../types.js';
  * Uses Rikta's lifecycle hooks to initialize on app start
  * and cleanup on app shutdown.
  * 
- * Priority is set to 100 to ensure database is ready before other services.
+ * Note: This class is NOT decorated with @Injectable because it requires
+ * programmatic configuration. Use createTypeOrmProvider() to create and
+ * register an instance.
  */
-@Injectable({ priority: 100 })
 export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
   /**
    * The TypeORM DataSource instance
@@ -61,7 +58,11 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
   /**
    * Options for the provider
    */
-  private options: TypeOrmProviderOptions;
+  private options: TypeOrmProviderOptions = {
+    autoInitialize: true,
+    retryAttempts: 0,
+    retryDelay: 3000,
+  };
 
   /**
    * Flag to track if connection was successfully initialized
@@ -74,22 +75,14 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
   private connectionName: string = 'default';
 
   /**
-   * Injected configuration provider
-   */
-  @Autowired(TYPEORM_CONFIG)
-  private configProvider!: TypeOrmConfigProvider;
-
-  /**
-   * Create a new TypeOrmProvider instance
+   * Configure the provider with options
    * 
-   * @param options - Optional configuration options. If not provided,
-   *                  configuration will be read from TypeOrmConfigProvider.
+   * @param options - Configuration options
+   * @returns This instance for chaining
    */
-  constructor(options: TypeOrmProviderOptions = {}) {
+  configure(options: TypeOrmProviderOptions): this {
     this.options = {
-      autoInitialize: true,
-      retryAttempts: 0,
-      retryDelay: 3000,
+      ...this.options,
       ...options,
     };
     
@@ -97,6 +90,8 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
     if (options.dataSourceOptions && 'name' in options.dataSourceOptions) {
       this.connectionName = (options.dataSourceOptions as { name?: string }).name || 'default';
     }
+    
+    return this;
   }
   
   /**
@@ -194,54 +189,14 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
    * Build DataSource options from configuration
    */
   private buildDataSourceOptions(): DataSourceOptions {
-    // If direct options were provided, use them
-    if (this.options.dataSourceOptions) {
-      return this.options.dataSourceOptions;
+    if (!this.options.dataSourceOptions) {
+      throw new Error(
+        'TypeORM DataSourceOptions are required. ' +
+        'Please provide dataSourceOptions when creating the TypeOrmProvider.'
+      );
     }
-
-    // Otherwise, build from config provider
-    const config = this.configProvider;
     
-    // Build base options
-    const baseOptions: Partial<DataSourceOptions> = {
-      type: config.type as DataSourceOptions['type'],
-      synchronize: config.synchronize,
-      logging: config.logging,
-    };
-
-    // Add network-specific options
-    if (config.isNetworkBased()) {
-      Object.assign(baseOptions, {
-        host: config.host,
-        port: config.port,
-        username: config.username,
-        password: config.password,
-        database: config.database,
-      });
-
-      // Add SSL if enabled
-      if (config.ssl) {
-        Object.assign(baseOptions, {
-          ssl: { rejectUnauthorized: false },
-        });
-      }
-
-      // Add pool size if specified
-      if (config.poolSize) {
-        Object.assign(baseOptions, {
-          extra: {
-            max: config.poolSize,
-          },
-        });
-      }
-    } else {
-      // File-based database (SQLite)
-      Object.assign(baseOptions, {
-        database: config.database || ':memory:',
-      });
-    }
-
-    return baseOptions as DataSourceOptions;
+    return this.options.dataSourceOptions;
   }
 
   /**
@@ -308,12 +263,19 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
  * Use this function when you need to provide DataSource options
  * programmatically rather than through environment variables.
  * 
+ * After creating the provider, you must:
+ * 1. Call `await typeormProvider.onProviderInit()` to connect
+ * 2. Register it in the container (or use `initializeTypeOrm` helper)
+ * 
  * @param options - DataSource options or provider options
  * @returns A configured TypeOrmProvider instance
  * 
  * @example
  * ```typescript
- * const provider = createTypeOrmProvider({
+ * import { Container } from '@riktajs/core';
+ * import { createTypeOrmProvider, TYPEORM_DATA_SOURCE, TYPEORM_ENTITY_MANAGER } from '@riktajs/typeorm';
+ * 
+ * const typeormProvider = createTypeOrmProvider({
  *   dataSourceOptions: {
  *     type: 'sqlite',
  *     database: ':memory:',
@@ -321,19 +283,104 @@ export class TypeOrmProvider implements OnProviderInit, OnProviderDestroy {
  *     synchronize: true,
  *   },
  * });
+ * 
+ * // Initialize and register
+ * await typeormProvider.onProviderInit();
+ * const container = Container.getInstance();
+ * container.registerValue(TYPEORM_DATA_SOURCE, typeormProvider.getDataSource());
+ * container.registerValue(TYPEORM_ENTITY_MANAGER, typeormProvider.getEntityManager());
  * ```
  */
 export function createTypeOrmProvider(
   options: TypeOrmProviderOptions | DataSourceOptions
 ): TypeOrmProvider {
+  const provider = new TypeOrmProvider();
+  
   // If it looks like DataSourceOptions, wrap it
   if ('type' in options && typeof options.type === 'string') {
-    return new TypeOrmProvider({
+    return provider.configure({
       dataSourceOptions: options as DataSourceOptions,
     });
   }
   
-  return new TypeOrmProvider(options as TypeOrmProviderOptions);
+  return provider.configure(options as TypeOrmProviderOptions);
+}
+
+/**
+ * Initialize TypeORM and register it in the Rikta container
+ * 
+ * This is a convenience function that:
+ * 1. Creates a TypeOrmProvider
+ * 2. Initializes the database connection
+ * 3. Registers DataSource and EntityManager in the DI container
+ * 4. Returns a cleanup function that you should call on app shutdown
+ * 
+ * Call this BEFORE Rikta.create()
+ * 
+ * @param options - DataSource options or provider options
+ * @returns Object with the provider and an auto-cleanup installer
+ * 
+ * @example
+ * ```typescript
+ * import { Rikta } from '@riktajs/core';
+ * import { initializeTypeOrm } from '@riktajs/typeorm';
+ * import { User } from './entities/user.entity';
+ * 
+ * async function bootstrap() {
+ *   // Initialize TypeORM (must be called before Rikta.create)
+ *   const { installCleanup } = await initializeTypeOrm({
+ *     type: 'postgres',
+ *     host: 'localhost',
+ *     port: 5432,
+ *     username: 'admin',
+ *     password: 'secret',
+ *     database: 'myapp',
+ *     entities: [User],
+ *     synchronize: false,
+ *     logging: true,
+ *   });
+ * 
+ *   const app = await Rikta.create({ port: 3000 });
+ *   
+ *   // Install automatic cleanup on app shutdown
+ *   installCleanup(app);
+ *   
+ *   await app.listen();
+ * }
+ * 
+ * bootstrap();
+ * ```
+ */
+export async function initializeTypeOrm(
+  options: TypeOrmProviderOptions | DataSourceOptions
+): Promise<{
+  provider: TypeOrmProvider;
+  installCleanup: (app: { close: (signal?: string) => Promise<void> }) => void;
+}> {
+  const { Container } = await import('@riktajs/core');
+  
+  // Create and configure provider
+  const provider = createTypeOrmProvider(options);
+  
+  // Initialize database connection
+  await provider.onProviderInit();
+  
+  // Register in DI container
+  const container = Container.getInstance();
+  container.registerValue(TYPEORM_DATA_SOURCE, provider.getDataSource());
+  container.registerValue(TYPEORM_ENTITY_MANAGER, provider.getEntityManager());
+  
+  // Return provider and cleanup installer
+  return {
+    provider,
+    installCleanup: (app) => {
+      const originalClose = app.close.bind(app);
+      app.close = async (signal?: string) => {
+        await provider.onProviderDestroy();
+        await originalClose(signal);
+      };
+    },
+  };
 }
 
 /**
@@ -453,7 +500,7 @@ export function createNamedTypeOrmProvider(
     };
   }
 
-  const provider = new TypeOrmProvider(providerOptions);
+  const provider = new TypeOrmProvider().configure(providerOptions);
   providerRegistry.set(name, provider);
   
   return provider;

@@ -9,10 +9,10 @@
 
 - 🔌 **Automatic Connection Management** - DataSource initializes on app start, closes on shutdown
 - 💉 **Dependency Injection** - Inject `DataSource` and `EntityManager` via `@Autowired`
-- ⚙️ **Environment Configuration** - Configure via `TYPEORM_*` environment variables
+- ⚙️ **Programmatic Configuration** - Configure via `createTypeOrmProvider()` function
 - 🔄 **Lifecycle Hooks** - Uses Rikta's `OnProviderInit` and `OnProviderDestroy`
 - 📦 **Re-exported Decorators** - Import TypeORM decorators directly from this package
-- 🎯 **Type-safe** - Full TypeScript support with Zod validation
+- 🎯 **Type-safe** - Full TypeScript support
 
 ## Installation
 
@@ -44,22 +44,7 @@ npm install mssql
 
 ## Quick Start
 
-### 1. Set Environment Variables
-
-Create a `.env` file in your project root:
-
-```env
-TYPEORM_TYPE=postgres
-TYPEORM_HOST=localhost
-TYPEORM_PORT=5432
-TYPEORM_USERNAME=admin
-TYPEORM_PASSWORD=secret
-TYPEORM_DATABASE=myapp
-TYPEORM_SYNCHRONIZE=false
-TYPEORM_LOGGING=true
-```
-
-### 2. Create an Entity
+### 1. Create an Entity
 
 ```typescript
 import { Entity, Column, PrimaryGeneratedColumn } from '@riktajs/typeorm';
@@ -80,7 +65,7 @@ export class User {
 }
 ```
 
-### 3. Create a Service
+### 2. Create a Service
 
 ```typescript
 import { Injectable, Autowired } from '@riktajs/core';
@@ -110,10 +95,10 @@ export class UserService {
 }
 ```
 
-### 4. Use in a Controller
+### 3. Use in a Controller
 
 ```typescript
-import { Controller, Get, Post, Body } from '@riktajs/core';
+import { Controller, Get, Post, Body, Autowired } from '@riktajs/core';
 import { UserService } from './user.service';
 
 @Controller('/users')
@@ -133,21 +118,34 @@ export class UserController {
 }
 ```
 
-### 5. Bootstrap the Application
+### 4. Bootstrap the Application
 
 ```typescript
 import 'reflect-metadata';
 import { Rikta } from '@riktajs/core';
-
-// Import your entities and services
-import './entities/user.entity';
-import './services/user.service';
-import './controllers/user.controller';
+import { initializeTypeOrm } from '@riktajs/typeorm';
+import { User } from './entities/user.entity';
 
 async function bootstrap() {
+  // Initialize TypeORM (automatically connects and registers in DI container)
+  const { installCleanup } = await initializeTypeOrm({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'admin',
+    password: 'secret',
+    database: 'myapp',
+    entities: [User], // Register your entities
+    synchronize: false, // Set to true only in development
+    logging: true,
+  });
+
   const app = await Rikta.create({
     port: 3000,
   });
+
+  // Install automatic cleanup on app shutdown
+  installCleanup(app);
 
   await app.listen();
 }
@@ -155,42 +153,132 @@ async function bootstrap() {
 bootstrap();
 ```
 
-## Configuration
+The `installCleanup(app)` call ensures that TypeORM connections are automatically closed when `app.close()` is called or when the process terminates gracefully.
 
-### Environment Variables
+<details>
+<summary>Alternative: Manual initialization</summary>
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `TYPEORM_TYPE` | string | *required* | Database type: `postgres`, `mysql`, `sqlite`, `mariadb`, `mssql`, `oracle`, `mongodb` |
-| `TYPEORM_HOST` | string | - | Database host |
-| `TYPEORM_PORT` | number | - | Database port |
-| `TYPEORM_USERNAME` | string | - | Database username |
-| `TYPEORM_PASSWORD` | string | - | Database password |
-| `TYPEORM_DATABASE` | string | - | Database name or file path (SQLite) |
-| `TYPEORM_SYNCHRONIZE` | boolean | `false` | Sync schema on startup (⚠️ dev only!) |
-| `TYPEORM_LOGGING` | boolean | `false` | Enable query logging |
-| `TYPEORM_NAME` | string | `default` | Connection name (for multiple connections) |
-| `TYPEORM_SSL` | boolean | `false` | Enable SSL connection |
-| `TYPEORM_POOL_SIZE` | number | - | Connection pool size |
-
-### Programmatic Configuration
-
-You can also configure TypeORM programmatically:
+If you need more control, you can initialize manually:
 
 ```typescript
-import { createTypeOrmProvider } from '@riktajs/typeorm';
+import 'reflect-metadata';
+import { Rikta, Container } from '@riktajs/core';
+import { createTypeOrmProvider, TYPEORM_DATA_SOURCE, TYPEORM_ENTITY_MANAGER } from '@riktajs/typeorm';
 import { User } from './entities/user.entity';
 
-const provider = createTypeOrmProvider({
+async function bootstrap() {
+  // Create and configure the TypeORM provider
+  const typeormProvider = createTypeOrmProvider({
+    dataSourceOptions: {
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'admin',
+      password: 'secret',
+      database: 'myapp',
+      entities: [User], // Register your entities
+      synchronize: false, // Set to true only in development
+      logging: true,
+    },
+  });
+
+  // Initialize the provider (connects to database)
+  await typeormProvider.onProviderInit();
+
+  // Register DataSource in the container so services can inject it
+  const container = Container.getInstance();
+  container.registerValue(TYPEORM_DATA_SOURCE, typeormProvider.getDataSource());
+  container.registerValue(TYPEORM_ENTITY_MANAGER, typeormProvider.getEntityManager());
+
+  const app = await Rikta.create({
+    port: 3000,
+  });
+
+  await app.listen();
+  
+  // Cleanup on shutdown
+  process.on('SIGTERM', async () => {
+    await typeormProvider.onProviderDestroy();
+    await app.close();
+  });
+}
+
+bootstrap();
+```
+</details>
+
+## Configuration
+
+All configuration must be provided programmatically through `initializeTypeOrm()` or `createTypeOrmProvider()`. 
+This ensures type safety and makes it explicit which entities and options are being used.
+
+### Basic Configuration
+
+```typescript
+import { initializeTypeOrm } from '@riktajs/typeorm';
+import { User } from './entities/user.entity';
+
+const { installCleanup } = await initializeTypeOrm({
   type: 'postgres',
   host: 'localhost',
   port: 5432,
   username: 'admin',
   password: 'secret',
   database: 'myapp',
-  entities: [User],
-  synchronize: true,
+  entities: [User], // Always required
+  synchronize: false, // Set to true only in development!
   logging: true,
+});
+
+// Don't forget to call installCleanup(app) after creating your Rikta app
+```
+
+### Using Environment Variables
+
+You can still use environment variables by reading them in your bootstrap code:
+
+```typescript
+const { installCleanup } = await initializeTypeOrm({
+    type: process.env.DB_TYPE as any,
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || '5432'),
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    entities: [User, Post, Comment],
+    synchronize: process.env.NODE_ENV === 'development',
+    logging: process.env.NODE_ENV === 'development',
+  },
+});
+```
+
+### Multiple Entities
+
+Use an array to register multiple entities:
+
+```typescript
+import { User } from './entities/user.entity';
+import { Post } from './entities/post.entity';
+import { Comment } from './entities/comment.entity';
+
+await initializeTypeOrm({
+  // ... other options
+  entities: [User, Post, Comment],
+});
+```
+
+### Entity Auto-Discovery with Glob Patterns
+
+For larger projects, use glob patterns to auto-discover entities:
+
+```typescript
+const typeormProvider = createTypeOrmProvider({
+  dataSourceOptions: {
+    // ... other options
+    entities: ['src/entities/**/*.entity.{ts,js}'],
+    // In production build:
+    // entities: ['dist/entities/**/*.entity.js'],
+  },
 });
 ```
 
@@ -200,7 +288,6 @@ const provider = createTypeOrmProvider({
 |-------|------|-------------|
 | `TYPEORM_DATA_SOURCE` | `DataSource` | The TypeORM DataSource instance |
 | `TYPEORM_ENTITY_MANAGER` | `EntityManager` | The EntityManager for the default connection |
-| `TYPEORM_CONFIG` | `TypeOrmConfigProvider` | The configuration provider instance |
 
 ### Using EntityManager
 
@@ -347,11 +434,15 @@ export class ReportService {
 For unstable connections, configure retry behavior:
 
 ```typescript
-const provider = createTypeOrmProvider({
+const typeormProvider = createTypeOrmProvider({
   dataSourceOptions: {
     type: 'postgres',
     host: 'db.example.com',
-    // ...
+    port: 5432,
+    username: 'admin',
+    password: 'secret',
+    database: 'myapp',
+    entities: [User],
   },
   retryAttempts: 3,
   retryDelay: 5000, // 5 seconds
@@ -366,8 +457,9 @@ Connect to multiple databases using named providers:
 import { 
   createNamedTypeOrmProvider, 
   getDataSourceToken,
-  getEntityManagerToken,
 } from '@riktajs/typeorm';
+import { User, Post } from './entities/main';
+import { Event, Metric } from './entities/analytics';
 
 // Create providers for each database
 const mainDb = createNamedTypeOrmProvider('main', {
@@ -384,9 +476,11 @@ const analyticsDb = createNamedTypeOrmProvider('analytics', {
   entities: [Event, Metric],
 });
 
-// Initialize both
-await mainDb.onProviderInit();
-await analyticsDb.onProviderInit();
+// Use both providers in Rikta
+const app = await Rikta.create({
+  port: 3000,
+  providers: [mainDb, analyticsDb],
+});
 ```
 
 Inject named datasources in your services:
@@ -465,20 +559,49 @@ This error occurs when you try to use the DataSource before it's been initialize
 
 1. Your service is decorated with `@Injectable()`
 2. You're using `@Autowired(TYPEORM_DATA_SOURCE)` to inject the DataSource
-3. The `TYPEORM_TYPE` environment variable is set
+3. You've provided `dataSourceOptions` when creating the TypeORM provider
+4. The TypeORM provider is included in the `providers` array when creating your Rikta app
+
+### "No metadata for Entity was found"
+
+This error means TypeORM doesn't know about your entity. Make sure:
+
+1. You've registered the entity in the `entities` array of `dataSourceOptions`
+2. You're importing the entity file before using it
+3. The entity class is decorated with `@Entity()`
+
+```typescript
+// ✅ Correct
+const typeormProvider = createTypeOrmProvider({
+  dataSourceOptions: {
+    type: 'postgres',
+    // ... other options
+    entities: [User, Post, Comment], // Register your entities here
+  },
+});
+```
 
 ### Connection Refused
 
-Check your environment variables:
+Check your database configuration:
 
-```bash
-# Debug: print current config
-echo $TYPEORM_HOST $TYPEORM_PORT $TYPEORM_DATABASE
+```typescript
+// Verify your connection details
+const typeormProvider = createTypeOrmProvider({
+  dataSourceOptions: {
+    type: 'postgres',
+    host: 'localhost', // Is this correct?
+    port: 5432,        // Is the port correct?
+    username: 'admin', // Valid credentials?
+    password: 'secret',
+    database: 'myapp', // Does this database exist?
+  },
+});
 ```
 
 ### Schema Synchronization Issues
 
-**⚠️ Warning**: Never use `TYPEORM_SYNCHRONIZE=true` in production! Use migrations instead.
+**⚠️ Warning**: Never use `synchronize: true` in production! Use migrations instead.
 
 ```bash
 # Generate a migration

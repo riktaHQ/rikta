@@ -1,0 +1,9 @@
+{
+  "label": "Security",
+  "position": 5,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Secure your Rikta application with authentication and authorization."
+  }
+}

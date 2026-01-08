@@ -1,0 +1,9 @@
+{
+  "label": "CLI",
+  "position": 8,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Use the Rikta CLI to generate and manage your projects."
+  }
+}

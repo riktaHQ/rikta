@@ -1,0 +1,9 @@
+{
+  "label": "OpenAPI",
+  "position": 7,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Generate OpenAPI/Swagger documentation for your Rikta APIs."
+  }
+}

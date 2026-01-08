@@ -16,6 +16,9 @@ import { swaggerPlugin } from '@riktajs/swagger';
 import { APP_CONFIG } from "./config/app.config";
 
 async function bootstrap() {
+  // .env files are loaded automatically at the start of Rikta.create()
+  // This means process.env is available immediately, even before the app is created!
+  
   // Create the application with auto-discovery
   // All @Controller, @Injectable, @Provider classes are found automatically!
   const app = await Rikta.create({

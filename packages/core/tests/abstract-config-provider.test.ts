@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { AbstractConfigProvider, ConfigValidationException } from '../src/core/config/abstract-config-provider';
+import { resetEnvLoaded } from '../src/core/config/env-loader';
 import { Provider } from '../src/core/decorators/provider.decorator';
 import { ConfigProperty } from '../src/core/decorators/config-property.decorator';
 import { registry } from '../src/core/registry';
@@ -27,7 +28,7 @@ describe('AbstractConfigProvider', () => {
     });
     
     // Reset env loaded flag
-    AbstractConfigProvider.resetEnvLoaded();
+    resetEnvLoaded();
     
     // Clear process.env (keep only essentials)
     Object.keys(process.env).forEach(key => {
@@ -49,7 +50,7 @@ describe('AbstractConfigProvider', () => {
       }
     });
     
-    AbstractConfigProvider.resetEnvLoaded();
+    resetEnvLoaded();
   });
 
   describe('Schema validation', () => {
@@ -220,7 +221,7 @@ describe('AbstractConfigProvider', () => {
       process.env.NODE_ENV = 'production';
       writeFileSync(`${baseEnvPath}.production`, 'PROD_VAR=from-production\n');
 
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       @Provider()
       class TestConfig extends AbstractConfigProvider {
@@ -248,7 +249,7 @@ describe('AbstractConfigProvider', () => {
       writeFileSync(baseEnvPath, 'OVERRIDE_VAR=from-base\n');
       writeFileSync(`${baseEnvPath}.development`, 'OVERRIDE_VAR=from-dev\n');
 
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       @Provider()
       class TestConfig extends AbstractConfigProvider {
@@ -443,7 +444,7 @@ describe('AbstractConfigProvider', () => {
     it('should share env loading across instances', () => {
       writeFileSync(baseEnvPath, 'SHARED_VAR=shared-value\n');
 
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       @Provider()
       class Config1 extends AbstractConfigProvider {

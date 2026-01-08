@@ -3,7 +3,7 @@ import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { AppConfigProvider, APP_CONFIG } from '../../example/src/config/app-config.provider';
 import { DatabaseConfigProvider, DATABASE_CONFIG } from '../../example/src/config/database-config.provider';
-import { AbstractConfigProvider } from '../src/core/config/abstract-config-provider';
+import { resetEnvLoaded } from '../src/core/config/env-loader';
 import 'reflect-metadata';
 
 describe('Example Config Providers - Integration', () => {
@@ -27,7 +27,7 @@ describe('Example Config Providers - Integration', () => {
     delete process.env.DB_PASSWORD;
     delete process.env.DB_SSL;
     
-    AbstractConfigProvider.resetEnvLoaded();
+    resetEnvLoaded();
   });
 
   afterEach(() => {
@@ -39,7 +39,7 @@ describe('Example Config Providers - Integration', () => {
       unlinkSync(testEnvPath);
     }
     
-    AbstractConfigProvider.resetEnvLoaded();
+    resetEnvLoaded();
   });
 
   describe('AppConfigProvider', () => {
@@ -58,7 +58,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.APP_NAME = 'Custom App';
       process.env.PORT = '8080';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new AppConfigProvider();
 
@@ -72,7 +72,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.PORT = '8080';
       process.env.HOST = 'example.com';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new AppConfigProvider();
 
@@ -89,7 +89,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_USER = 'admin';
       process.env.DB_PASSWORD = 'secret';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new AppConfigProvider();
 
@@ -101,7 +101,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_PORT = '5432';
       process.env.DB_NAME = 'testdb';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new AppConfigProvider();
 
@@ -111,7 +111,7 @@ describe('Example Config Providers - Integration', () => {
     it('should validate port number range', () => {
       process.env.PORT = '70000'; // Invalid port
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       expect(() => new AppConfigProvider()).toThrow();
     });
@@ -119,7 +119,7 @@ describe('Example Config Providers - Integration', () => {
     it('should validate environment enum', () => {
       process.env.NODE_ENV = 'invalid-env' as any;
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       expect(() => new AppConfigProvider()).toThrow();
     });
@@ -131,7 +131,7 @@ describe('Example Config Providers - Integration', () => {
         'DB_NAME=file_db\n'
       );
 
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new AppConfigProvider();
 
@@ -164,7 +164,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_POOL_MAX = '20';
       process.env.DB_SSL = 'true';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new DatabaseConfigProvider();
 
@@ -186,7 +186,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_PASSWORD = 'testpass';
       process.env.DB_SSL = '0'; // Explicit false
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new DatabaseConfigProvider();
 
@@ -201,7 +201,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_PASSWORD = 'secret';
       process.env.DB_SSL = 'true';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new DatabaseConfigProvider();
 
@@ -213,7 +213,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_POOL_MIN = '3';
       process.env.DB_POOL_MAX = '15';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const config = new DatabaseConfigProvider();
       const poolConfig = config.getPoolConfig();
@@ -228,7 +228,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_PORT = '99999'; // Invalid
       process.env.DB_NAME = 'testdb';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       expect(() => new DatabaseConfigProvider()).toThrow();
     });
@@ -237,7 +237,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_NAME = 'testdb';
       process.env.DB_POOL_MIN = '-1'; // Invalid
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       expect(() => new DatabaseConfigProvider()).toThrow();
     });
@@ -250,7 +250,7 @@ describe('Example Config Providers - Integration', () => {
       process.env.DB_NAME = 'multi_db';
       process.env.DB_PORT = '5433';
       
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const appConfig = new AppConfigProvider();
       const dbConfig = new DatabaseConfigProvider();
@@ -267,7 +267,7 @@ describe('Example Config Providers - Integration', () => {
         'DB_NAME=shared_db\n'
       );
 
-      AbstractConfigProvider.resetEnvLoaded();
+      resetEnvLoaded();
 
       const appConfig = new AppConfigProvider();
       const dbConfig = new DatabaseConfigProvider();

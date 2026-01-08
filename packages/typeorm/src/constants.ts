@@ -50,13 +50,6 @@ export const TYPEORM_DATA_SOURCE = new InjectionToken<DataSource>('TYPEORM_DATA_
  */
 export const TYPEORM_ENTITY_MANAGER = new InjectionToken<EntityManager>('TYPEORM_ENTITY_MANAGER');
 
-/**
- * Injection token for TypeORM configuration
- * 
- * This is used internally by the TypeOrmProvider to get configuration.
- */
-export const TYPEORM_CONFIG = 'TYPEORM_CONFIG' as const;
-
 // ============================================================================
 // Multiple DataSources Support
 // ============================================================================

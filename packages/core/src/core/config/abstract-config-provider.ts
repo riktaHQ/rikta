@@ -1,8 +1,6 @@
 import { z, ZodSchema } from 'zod';
-import { config as loadEnv } from 'dotenv';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
 import { getConfigPropertyMappings } from '../decorators/config-property.decorator';
+import { loadEnvFiles } from './env-loader';
 
 /**
  * Exception thrown when config validation fails
@@ -28,10 +26,13 @@ export class ConfigValidationException extends Error {
  * Abstract base class for configuration providers
  * 
  * This class handles:
- * - Loading .env files (base + environment-specific)
  * - Validating environment variables against a Zod schema
  * - Populating decorated properties with validated values
  * - Caching validated configuration
+ * 
+ * Note: .env files are loaded automatically at the start of Rikta.create(),
+ * so they are available immediately in your main script and before any
+ * config provider is instantiated.
  * 
  * Child classes must:
  * 1. Extend this class
@@ -78,11 +79,6 @@ export abstract class AbstractConfigProvider {
   private _cache?: Readonly<Record<string, unknown>>;
 
   /**
-   * Flag to track if .env files have been loaded
-   */
-  private static envLoaded = false;
-
-  /**
    * Define the Zod schema for this configuration
    * 
    * @returns A Zod schema that validates the environment variables
@@ -101,39 +97,14 @@ export abstract class AbstractConfigProvider {
   protected abstract schema(): ZodSchema;
 
   /**
-   * Constructor loads .env files if not already loaded
+   * Constructor ensures .env files are loaded (for standalone usage)
+   * 
+   * Note: When using Rikta.create(), .env files are loaded automatically
+   * during bootstrap, so this is a safety measure for standalone usage.
    */
   constructor() {
-    if (!AbstractConfigProvider.envLoaded) {
-      this.loadEnvFiles();
-      AbstractConfigProvider.envLoaded = true;
-    }
-  }
-
-  /**
-   * Load .env files with environment-specific precedence
-   * 
-   * Loading order (later files override earlier):
-   * 1. .env (base configuration)
-   * 2. .env.{NODE_ENV} (environment-specific)
-   * 
-   * @private
-   */
-  private loadEnvFiles(): void {
-    const env = process.env.NODE_ENV || 'development';
-    const cwd = process.cwd();
-
-    // Load base .env file
-    const baseEnvPath = resolve(cwd, '.env');
-    if (existsSync(baseEnvPath)) {
-      loadEnv({ path: baseEnvPath, override: false });
-    }
-
-    // Load environment-specific .env file (overrides base)
-    const envSpecificPath = resolve(cwd, `.env.${env}`);
-    if (existsSync(envSpecificPath)) {
-      loadEnv({ path: envSpecificPath, override: true });
-    }
+    // Ensure .env files are loaded (idempotent operation)
+    loadEnvFiles();
   }
 
   /**
@@ -235,14 +206,5 @@ export abstract class AbstractConfigProvider {
   protected get<T = unknown>(key: string): T | undefined {
     const config = this.validateAndCache();
     return config[key] as T | undefined;
-  }
-
-  /**
-   * Reset the env loaded flag (for testing)
-   * 
-   * @internal
-   */
-  static resetEnvLoaded(): void {
-    AbstractConfigProvider.envLoaded = false;
   }
 }

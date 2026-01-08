@@ -64,8 +64,7 @@
 
 export { 
   TYPEORM_DATA_SOURCE, 
-  TYPEORM_ENTITY_MANAGER, 
-  TYPEORM_CONFIG,
+  TYPEORM_ENTITY_MANAGER,
   // Multiple datasources helpers
   getDataSourceToken,
   getEntityManagerToken,
@@ -78,6 +77,7 @@ export {
 export { 
   TypeOrmProvider, 
   createTypeOrmProvider,
+  initializeTypeOrm,
   configureTypeOrm,
   // Multiple datasources
   createNamedTypeOrmProvider,
@@ -92,21 +92,11 @@ export type {
 } from './providers/typeorm.provider.js';
 
 // ============================================================================
-// Configuration
-// ============================================================================
-
-export { 
-  TypeOrmConfigProvider, 
-  TypeOrmConfigSchema 
-} from './config/typeorm-config.provider.js';
-
-// ============================================================================
 // Types
 // ============================================================================
 
 export type { 
-  DatabaseType, 
-  TypeOrmConfig, 
+  DatabaseType,
   TypeOrmProviderOptions 
 } from './types.js';
 
