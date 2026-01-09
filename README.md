@@ -201,6 +201,18 @@ class AuthService {
 
 ---
 
+## 💖 Sponsors
+
+Rikta is proudly sponsored by:
+
+<a href="https://artiforge.ai" target="_blank">
+  <img src="https://artiforge.ai/artiforge-logo.svg" alt="Artiforge" height="40" />
+</a>
+
+**[Artiforge](https://artiforge.ai)** - AI-powered development tools
+
+---
+
 ## 🤝 Contributing
 
 We love contributions! Please check our [Contributing Guide](CONTRIBUTING.md) (Coming Soon) and join our community.

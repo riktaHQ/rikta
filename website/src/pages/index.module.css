@@ -157,6 +157,37 @@
   color: var(--ifm-color-emphasis-700);
 }
 
+.sponsor {
+  padding: 4rem 0;
+  background: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .sponsor {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sponsorLink {
+  display: inline-block;
+  padding: 1.5rem 3rem;
+  border-radius: 12px;
+  border: 2px solid var(--ifm-color-primary);
+  background: var(--ifm-background-color);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sponsorLink:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+  text-decoration: none;
+  color: inherit;
+}
+
+[data-theme='dark'] .sponsorLink:hover {
+  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.3);
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     min-height: 100vh;

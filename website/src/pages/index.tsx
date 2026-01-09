@@ -75,7 +75,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         Built on top of Fastify for maximum performance and low overhead.
-        Rikta is <strong>32% faster</strong> than NestJS on average.
+        Rikta is <strong>~40% faster</strong> than NestJS on average.
       </>
     ),
   },
@@ -176,6 +176,30 @@ function PackagesSection(): JSX.Element {
   );
 }
 
+function SponsorSection(): JSX.Element {
+  return (
+    <section className={styles.sponsor}>
+      <div className="container text--center" style={{width: '300px'}}>
+        <Heading as="h2" style={{ marginBottom: '1.5rem' }}>
+          💖 Sponsors
+        </Heading>
+        <p style={{ marginBottom: '1.5rem', color: 'var(--ifm-color-emphasis-700)' }}>
+          Rikta is proudly sponsored by:
+        </p>
+        <a
+          href="https://artiforge.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.sponsorLink}
+        >
+          <img src='https://artiforge.ai/artiforge-logo.svg' alt='Artiforge Logo' />
+          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>generate production-ready code that matches your team's standards, from the first prompt</p>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
@@ -186,6 +210,7 @@ export default function Home(): JSX.Element {
       <main>
         <HomepageFeatures />
         <PackagesSection />
+        <SponsorSection />
       </main>
     </Layout>
   );
