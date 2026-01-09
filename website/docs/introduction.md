@@ -79,11 +79,13 @@ Rikta is built on Fastify and delivers **excellent performance**:
 
 | Metric | Rikta vs NestJS | Result |
 |--------|-----------------|--------|
-| **Startup** | 🟢 **-37.7%** | Rikta is faster |
-| **GET requests** | 🟢 **-44.3%** | Rikta is faster |
-| **POST requests** | 🟢 **-14.8%** | Rikta is faster |
-| **Param requests** | 🟢 **-36.7%** | Rikta is faster |
-| **Average** | 🟢 **-32.0%** | Rikta is faster |
+| **Startup** | 🟢 **-43%** | Rikta is faster |
+| **GET requests** | 🟢 **-41%** | Rikta is faster |
+| **POST requests** | 🟢 **-25%** | Rikta is faster |
+| **Param requests** | 🟢 **-46%** | Rikta is faster |
+| **Average** | 🟢 **~40%** | Rikta is faster |
+
+Rikta adds minimal overhead (~2-5%) over vanilla Fastify while being ~40% faster than NestJS.
 
 ## ✨ Key Features
 

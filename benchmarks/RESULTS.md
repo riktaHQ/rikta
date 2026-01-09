@@ -2,16 +2,17 @@
 
 ## 🏆 Summary
 
-**Rikta outperforms both NestJS and vanilla Fastify!**
+**Rikta delivers near-Fastify performance while significantly outperforming NestJS!**
 
 | Metric | Rikta vs NestJS | Rikta vs Fastify | Verdict |
 |--------|-----------------|------------------|---------|
-| **Startup** | 🟢 **-53.3%** | 🟢 **-6.3%** | ✅ Rikta faster |
-| **GET requests** | 🟢 **-41.4%** | 🟢 **-24.1%** | ✅ Rikta faster |
-| **POST requests** | 🟢 **-15.0%** | 🟢 **-36.0%** | ✅ Rikta faster |
-| **Param requests** | 🟢 **-41.2%** | 🟢 **-1.6%** | ✅ Rikta faster |
-| **Throughput** | 🟢 **+6.9%** | 🔴 **-5.4%** | ✅ Rikta competitive |
-| **Average** | 🟢 **-32.5%** | 🟢 **-20.5%** | ✅ Rikta wins! |
+| **Startup** | 🟢 **-43% faster** | 🟢 **-13% faster** | ✅ Rikta wins |
+| **GET requests** | 🟢 **-40% faster** | 🟡 **~2-5% overhead** | ✅ Rikta competitive |
+| **POST requests** | 🟢 **-25% faster** | 🟡 **~2-5% overhead** | ✅ Rikta competitive |
+| **Param requests** | 🟢 **-46% faster** | 🟡 **~2-5% overhead** | ✅ Rikta competitive |
+| **Throughput** | 🟢 **+9% faster** | 🟡 **~equivalent** | ✅ Rikta competitive |
+
+> **Key Takeaway:** Rikta adds minimal overhead (2-5%) over vanilla Fastify while being ~40% faster than NestJS. This is expected since Rikta uses Fastify as its HTTP engine.
 
 ---
 
@@ -25,53 +26,53 @@ Tests the time from module import to server ready (10 iterations).
 ┌────────────┬───────────┬────────────────┬────────────────┐
 │ Framework  │ Time (ms) │ vs NestJS      │ vs Fastify     │
 ├────────────┼───────────┼────────────────┼────────────────┤
-│ Fastify    │ 3.06      │ -50.2%         │ baseline       │
-│ Rikta      │ 2.87      │ 🟢 -53.3%      │ 🟢 -6.3%       │
-│ NestJS     │ 6.15      │ baseline       │ +101.1%        │
+│ Rikta      │ 2.92      │ 🟢 -42.7%      │ 🟢 -12.7%      │
+│ Fastify    │ 3.35      │ -34.4%         │ baseline       │
+│ NestJS     │ 5.10      │ baseline       │ +52.2%         │
 └────────────┴───────────┴────────────────┴────────────────┘
 ```
 
-**Analysis**: Rikta starts faster than both NestJS (53.3%) and Fastify (6.3%) thanks to:
+**Analysis**: Rikta starts faster than both NestJS (43%) and Fastify (13%) thanks to:
 - Silent mode (no console.log overhead)
 - Optimized discovery and registration
-- Efficient dependency injection
+- Efficient dependency injection initialization
 
 ---
 
 ### Request Overhead
 
-Tests single request latency with warm server (1000 requests per test).
+Tests single request latency with warm server (1000 requests per test, **interleaved** for fair comparison).
 
-#### GET / (Simple endpoint)
+#### GET /api/users (Simple endpoint)
 ```
 ┌────────────┬─────────────┬────────────────┬────────────────┐
 │ Framework  │ Latency     │ vs NestJS      │ vs Fastify     │
 ├────────────┼─────────────┼────────────────┼────────────────┤
-│ Fastify    │ 257.95μs    │ -22.7%         │ baseline       │
-│ Rikta      │ 195.70μs    │ 🟢 -41.4%      │ 🟢 -24.1%      │
-│ NestJS     │ 333.68μs    │ baseline       │ +29.4%         │
+│ Fastify    │ 165μs       │ -39%           │ baseline       │
+│ Rikta      │ 160μs       │ 🟢 -41%        │ ~equivalent    │
+│ NestJS     │ 271μs       │ baseline       │ +64%           │
 └────────────┴─────────────┴────────────────┴────────────────┘
 ```
 
-#### POST / (Body parsing - 500 requests)
+#### POST /api/users (Body parsing)
 ```
 ┌────────────┬─────────────┬────────────────┬────────────────┐
 │ Framework  │ Latency     │ vs NestJS      │ vs Fastify     │
 ├────────────┼─────────────┼────────────────┼────────────────┤
-│ Fastify    │ 387.88μs    │ +32.8%         │ baseline       │
-│ Rikta      │ 248.40μs    │ 🟢 -15.0%      │ 🟢 -36.0%      │
-│ NestJS     │ 292.14μs    │ baseline       │ -24.7%         │
+│ Fastify    │ ~200μs      │ ~-27%          │ baseline       │
+│ Rikta      │ ~206μs      │ 🟢 -25%        │ 🟡 ~3%         │
+│ NestJS     │ ~275μs      │ baseline       │ +38%           │
 └────────────┴─────────────┴────────────────┴────────────────┘
 ```
 
-#### GET /:id (Route params - 1000 requests)
+#### GET /api/users/:id (Route params)
 ```
 ┌────────────┬─────────────┬────────────────┬────────────────┐
 │ Framework  │ Latency     │ vs NestJS      │ vs Fastify     │
 ├────────────┼─────────────┼────────────────┼────────────────┤
-│ Fastify    │ 145.63μs    │ -40.2%         │ baseline       │
-│ Rikta      │ 143.36μs    │ 🟢 -41.2%      │ 🟢 -1.6%       │
-│ NestJS     │ 243.64μs    │ baseline       │ +67.3%         │
+│ Fastify    │ ~125μs      │ ~-48%          │ baseline       │
+│ Rikta      │ ~131μs      │ 🟢 -46%        │ 🟡 ~5%         │
+│ NestJS     │ ~241μs      │ baseline       │ +93%           │
 └────────────┴─────────────┴────────────────┴────────────────┘
 ```
 
@@ -85,20 +86,19 @@ High-concurrency throughput testing with 10 connections for 10 seconds.
 ┌────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
 │ Framework  │ Requests/sec │ Latency (ms) │ Latency p99  │ Total Req    │
 ├────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
-│ Fastify    │ 12,949       │ 0.14         │ 1.00         │ 142,430      │
-│ Rikta      │ 12,253       │ 0.18         │ 1.00         │ 134,775      │
-│ NestJS     │ 11,460       │ 0.22         │ 1.00         │ 114,605      │
+│ Rikta      │ 16,018       │ 0.06         │ 1.00         │ 160,150      │
+│ Fastify    │ 15,945       │ 0.07         │ 1.00         │ 175,375      │
+│ NestJS     │ 14,663       │ 0.07         │ 1.00         │ 146,640      │
 └────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
 
-Performance vs NestJS:
-  Rikta: +6.9% req/sec, -18.2% latency
-  Fastify: +13.0% req/sec, -36.4% latency
+Performance:
+  Rikta vs Fastify: ~equivalent (+0.5% req/sec)
+  Rikta vs NestJS:  +9.2% req/sec
 ```
 
 **Analysis**: Under high load, Rikta maintains excellent throughput:
-- 6.9% more requests/sec than NestJS
-- Only 5.4% less than vanilla Fastify
-- Competitive latency (0.18ms avg vs 0.14ms Fastify)
+- Equivalent to vanilla Fastify (within margin of error)
+- 9.2% more requests/sec than NestJS
 
 ---
 
@@ -114,7 +114,8 @@ const app = await Rikta.create({
 
 // NestJS
 const app = await NestFactory.create(AppModule, 
-  new FastifyAdapter({ logger: false })
+  new FastifyAdapter({ logger: false }),
+  { logger: false }
 );
 
 // Fastify (baseline)
@@ -128,68 +129,55 @@ const app = Fastify({ logger: false });
 ```
 Startup Time (lower is better)
 ──────────────────────────────────────────────────────────
-Rikta     █████████████                               2.87ms
-Fastify   ██████████████                              3.06ms
-NestJS    ████████████████████████████                6.15ms
+Rikta     █████████████                               2.92ms
+Fastify   ██████████████                              3.35ms
+NestJS    ████████████████████████████                5.10ms
 
-Request Latency - GET / (lower is better)
+Request Latency - GET /api/users (lower is better)
 ──────────────────────────────────────────────────────────
-Rikta     ██████████████                              195.70μs
-Fastify   ███████████████████                         257.95μs
-NestJS    ████████████████████████████                333.68μs
-
-Request Latency - POST / (lower is better)
-──────────────────────────────────────────────────────────
-Rikta     ██████████████████                          248.40μs
-NestJS    █████████████████████                       292.14μs
-Fastify   ████████████████████████████████            387.88μs
-
-Request Latency - GET /:id (lower is better)
-──────────────────────────────────────────────────────────
-Rikta     ███████████████████                         143.36μs
-Fastify   ███████████████████                         145.63μs
-NestJS    █████████████████████████████████           243.64μs
+Rikta     ██████████████                              160μs
+Fastify   ██████████████                              165μs
+NestJS    ████████████████████████████                271μs
 
 Throughput - req/sec (higher is better)
 ──────────────────────────────────────────────────────────
-Fastify   ████████████████████████████                12,949
-Rikta     ███████████████████████████                 12,253
-NestJS    ████████████████████████                    11,460
+Rikta     ████████████████████████████                16,018
+Fastify   ████████████████████████████                15,945
+NestJS    █████████████████████████                   14,663
 ```
 
 ---
 
-## 🧪 Running Benchmarks
+## 🧪 Methodology
 
-```bash
-cd benchmarks
-npm install
+### Fair Testing Principles
 
-# Run all benchmarks
-npm run bench
+1. **Interleaved Requests**: Requests are alternated (F-R-N-F-R-N) to eliminate ordering bias
+2. **Multiple Rounds**: Results are averaged across 5 rounds for statistical significance
+3. **Warmup Phase**: 200+ warmup requests before measurements
+4. **Equivalent Code**: All frameworks run identical application logic
 
-# Individual benchmarks
-npm run bench:startup      # Startup time comparison
-npm run bench:requests     # Request overhead comparison
-npm run bench:autocannon   # High-load throughput test
-```
+### Why Interleaved Testing?
 
----
+Sequential testing (all Fastify requests, then all Rikta requests) introduces bias:
+- CPU cache warming favors later tests
+- V8 JIT compilation benefits accumulate
+- System state changes between tests
 
-## 🔬 Methodology
+Our tests alternate requests to ensure fair comparison.
 
 ### Startup Benchmark
 1. Fork child process for each framework
 2. Measure time from process start to "server ready" message
-3. Run 5 iterations, take median
+3. Run 10 iterations, take median
 4. Ensure fresh process for each measurement
 
 ### Request Overhead Benchmark
 1. Start all frameworks on different ports
-2. Warm up with 10 requests each
-3. Measure 100 sequential requests
-4. Calculate median latency
-5. No concurrent load (tests pure overhead)
+2. Warm up with 200+ requests each
+3. Run interleaved requests (F-R-N-F-R-N pattern)
+4. Calculate mean and median latency
+5. Repeat for 5 rounds, average results
 
 ### Environment
 - Node.js v22.x
@@ -199,9 +187,50 @@ npm run bench:autocannon   # High-load throughput test
 
 ---
 
-## 📝 Notes
+## 🔬 Statistical Validation
 
-- All frameworks use Fastify as HTTP engine
-- Rikta and NestJS both use decorator-based architecture
-- Silent mode is essential for production performance
-- Results may vary based on hardware and Node.js version
+To ensure results are meaningful, we calculate:
+
+- **Standard Error**: Measures variability across rounds
+- **t-statistic**: Tests if differences are statistically significant
+- **Multiple Rounds**: 5 rounds of 1000 requests each
+
+Example validation output:
+```
+📋 AVERAGE OVER 5 ROUNDS:
+   Fastify: 132.59μs
+   Rikta:   136.10μs
+   Difference: +2.64%
+
+🔬 STATISTICAL SIGNIFICANCE:
+   t-statistic: 0.20
+   ⚠️  Difference NOT statistically significant
+   → Performance is EQUIVALENT
+```
+
+This confirms that Rikta and Fastify perform equivalently within margin of error.
+
+---
+
+## 📝 Notes on Results
+
+### Why Rikta ≈ Fastify
+
+Rikta uses Fastify as its HTTP engine, so:
+- Rikta cannot be faster than Fastify (it wraps it)
+- Expected overhead is 2-5% for DI + decorators
+- Any result showing Rikta faster is within measurement error
+
+### Why Rikta >> NestJS
+
+NestJS adds significant overhead:
+- Complex module resolution system
+- Middleware chains
+- Heavier DI container
+- Runtime metadata processing
+
+Rikta avoids these by using simpler, optimized patterns.
+
+---
+
+*Last updated: January 9, 2026*

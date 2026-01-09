@@ -6,8 +6,10 @@
   "scripts": {
     "bench": "bash run-all.sh",
     "bench:startup": "tsx startup-time.bench.ts",
-    "bench:requests": "tsx request-overhead.bench.ts",
-    "bench:autocannon": "tsx autocannon.bench.ts"
+    "bench:requests": "tsx request-overhead-fair.bench.ts",
+    "bench:requests:legacy": "tsx request-overhead.bench.ts",
+    "bench:autocannon": "tsx autocannon.bench.ts",
+    "bench:validate": "tsx statistical-validation.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.8",

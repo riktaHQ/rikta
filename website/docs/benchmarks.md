@@ -19,15 +19,15 @@ Rikta achieves excellent performance by:
 
 ### 🏆 Quick Summary
 
-**Rikta significantly outperforms NestJS and is competitive with vanilla Fastify!**
+**Rikta delivers near-Fastify performance while significantly outperforming NestJS!**
 
 | Metric | vs NestJS | vs Fastify |
 |--------|-----------|------------|
-| **Startup** | 🟢 **-53% faster** | 🟢 **-6% faster** |
-| **Throughput** | 🟢 **+7% faster** | 🟡 **~5% slower** |
-| **Request Latency** | 🟢 **~35% faster** | 🟡 **competitive** |
+| **Startup** | 🟢 **-43% faster** | 🟢 **-13% faster** |
+| **Throughput** | 🟢 **+9% faster** | 🟡 **~equivalent** |
+| **Request Latency** | 🟢 **~40% faster** | 🟡 **~2-5% overhead** |
 
-> **Note:** Micro-benchmarks have inherent variance. The key takeaway is that Rikta adds minimal overhead (~5-10%) over vanilla Fastify while being significantly faster than NestJS.
+> **Note:** Rikta uses Fastify as its HTTP engine, so it cannot be faster than vanilla Fastify. The 2-5% overhead is the cost of DI, decorators, and structured architecture. Micro-benchmarks have inherent variance; results are averaged across multiple rounds with interleaved requests for fairness.
 
 ### Startup Time
 
@@ -35,9 +35,9 @@ Time to bootstrap and be ready for requests (lower is better):
 
 | Framework | Startup Time | vs NestJS | vs Fastify |
 |-----------|-------------|-----------|------------|
-| **Rikta** | **2.87ms** | 🟢 -53.3% | 🟢 -6.3% |
-| Fastify | 3.06ms | -50.2% | baseline |
-| NestJS | 6.15ms | baseline | +101.1% |
+| **Rikta** | **2.92ms** | 🟢 -43% | 🟢 -13% |
+| Fastify | 3.35ms | -34% | baseline |
+| NestJS | 5.10ms | baseline | +52% |
 
 *10 iterations, median time from process start to server ready*
 
@@ -49,27 +49,27 @@ Additional latency per request from framework overhead (lower is better):
 
 | Framework | Latency | vs NestJS | vs Fastify |
 |-----------|---------|-----------|------------|
-| **Rikta** | **195.70μs** | 🟢 -41.4% | 🟢 -24.1% |
-| Fastify | 257.95μs | -22.7% | baseline |
-| NestJS | 333.68μs | baseline | +29.4% |
+| Fastify | 165μs | -39% | baseline |
+| **Rikta** | **160μs** | 🟢 -41% | ~equivalent |
+| NestJS | 271μs | baseline | +64% |
 
 #### POST / (Body parsing)
 
 | Framework | Latency | vs NestJS | vs Fastify |
 |-----------|---------|-----------|------------|
-| **Rikta** | **248.40μs** | 🟢 -15.0% | 🟢 -36.0% |
-| NestJS | 292.14μs | baseline | -24.7% |
-| Fastify | 387.88μs | +32.8% | baseline |
+| Fastify | ~200μs | ~-27% | baseline |
+| **Rikta** | **~206μs** | 🟢 -25% | 🟡 ~3% |
+| NestJS | ~275μs | baseline | +38% |
 
 #### GET /:id (Route params)
 
 | Framework | Latency | vs NestJS | vs Fastify |
 |-----------|---------|-----------|------------|
-| **Rikta** | **143.36μs** | 🟢 -41.2% | 🟢 -1.6% |
-| Fastify | 145.63μs | -40.2% | baseline |
-| NestJS | 243.64μs | baseline | +67.3% |
+| Fastify | ~125μs | ~-48% | baseline |
+| **Rikta** | **~131μs** | 🟢 -46% | 🟡 ~5% |
+| NestJS | ~241μs | baseline | +93% |
 
-*1000 requests per test, median latency*
+*1000 requests per test, interleaved pattern for fair comparison*
 
 ### Load Testing (Autocannon)
 
@@ -77,15 +77,15 @@ High-concurrency throughput testing (higher is better):
 
 | Framework | Req/sec | Latency (avg) | Latency (p99) | Total Requests |
 |-----------|---------|---------------|---------------|----------------|
-| Fastify | 12,949 | 0.14ms | 1.00ms | 142,430 |
-| **Rikta** | **12,253** | 0.18ms | 1.00ms | 134,775 |
-| NestJS | 11,460 | 0.22ms | 1.00ms | 114,605 |
+| **Rikta** | **16,018** | 0.06ms | 1.00ms | 160,150 |
+| Fastify | 15,945 | 0.07ms | 1.00ms | 175,375 |
+| NestJS | 14,663 | 0.07ms | 1.00ms | 146,640 |
 
 *10 connections, 10 seconds duration*
 
 **Performance vs NestJS:**
-- Rikta: **+6.9%** req/sec, **-18.2%** latency
-- Fastify: +13.0% req/sec, -36.4% latency
+- Rikta: **+9.2%** req/sec
+- Rikta vs Fastify: ~equivalent (within margin of error)
 
 ## Benchmark Details
 
@@ -237,18 +237,18 @@ When `silent: true`, Rikta skips all console output during startup and request h
 
 ### vs. Raw Fastify
 
-Rikta adds minimal overhead (~5-10%) compared to raw Fastify while providing:
+Rikta adds minimal overhead (~2-5%) compared to raw Fastify while providing:
 - Dependency injection
 - Decorators for routing
 - Class-based architecture
 - Validation integration
 - Structured architecture
 
-The small overhead is justified by significantly better developer experience and maintainability.
+This overhead is expected since Rikta wraps Fastify. The small cost is justified by significantly better developer experience and maintainability.
 
 ### vs. NestJS
 
-Rikta is significantly faster than NestJS (**~35% on average**) because:
+Rikta is significantly faster than NestJS (**~40% on average**) because:
 - Simpler DI container with less abstraction
 - No runtime module resolution
 - Optimized route registration
@@ -288,4 +288,4 @@ All benchmarks are run automatically on every release. You can find:
 - Quick summary in [`benchmarks/QUICK-SUMMARY.md`](https://github.com/riktahq/rikta/blob/main/benchmarks/QUICK-SUMMARY.md)
 - Benchmark code in [`benchmarks/`](https://github.com/riktahq/rikta/tree/main/benchmarks) directory
 
-*Last updated: January 8, 2026*
+*Last updated: January 9, 2026*
