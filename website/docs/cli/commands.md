@@ -18,10 +18,8 @@ rikta new <project-name> [options]
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--directory` | `-d` | Directory to create project in | Current directory |
+| `--template` | `-t` | Project template to use | `default` |
 | `--skip-install` | - | Skip npm install | `false` |
-| `--skip-git` | - | Skip git initialization | `false` |
-| `--package-manager` | `-p` | Package manager (npm, yarn, pnpm) | `npm` |
 
 ### Examples
 
@@ -29,17 +27,11 @@ rikta new <project-name> [options]
 # Create project in current directory
 rikta new my-app
 
-# Create in specific directory
-rikta new my-app -d ./projects
-
 # Skip npm install
 rikta new my-app --skip-install
 
-# Use yarn
-rikta new my-app -p yarn
-
-# Use pnpm
-rikta new my-app -p pnpm
+# Use specific template
+rikta new my-app --template default
 ```
 
 ### Generated Structure
@@ -58,223 +50,38 @@ my-app/
 └── README.md
 ```
 
-## generate
+## dev
 
-Generate components for your project:
+Start the development server with hot reload:
 
 ```bash
-rikta generate <type> <name> [options]
+rikta dev [options]
 ```
 
-Alias: `rikta g`
-
-### Types
-
-| Type | Alias | Description |
-|------|-------|-------------|
-| `controller` | `co` | Generate a controller |
-| `service` | `s` | Generate a service |
-| `provider` | `p` | Generate a configuration provider |
-| `guard` | `gu` | Generate a guard |
-| `resource` | `res` | Generate controller + service |
+Alias: `rikta serve`
 
 ### Options
 
-| Option | Alias | Description |
-|--------|-------|-------------|
-| `--path` | `-p` | Custom path for generated file |
-| `--flat` | - | Generate without creating folder |
+| Option | Alias | Description | Default |
+|--------|-------|-------------|---------|
+| `--port` | `-p` | Port to run the server on | `3000` |
+| `--host` | `-H` | Host to bind the server to | `0.0.0.0` |
+| `--no-watch` | - | Disable file watching | `false` |
 
 ### Examples
 
-#### Generate Controller
-
 ```bash
-rikta generate controller user
-# or
-rikta g co user
-```
+# Start with default settings
+rikta dev
 
-Creates `src/controllers/user.controller.ts`:
+# Custom port
+rikta dev --port 8080
 
-```typescript
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@riktajs/core';
+# Custom host
+rikta dev --host 127.0.0.1
 
-@Controller('/user')
-export class UserController {
-  @Get()
-  findAll() {
-    return [];
-  }
-
-  @Get('/:id')
-  findOne(@Param('id') id: string) {
-    return { id };
-  }
-
-  @Post()
-  create(@Body() data: any) {
-    return data;
-  }
-
-  @Put('/:id')
-  update(@Param('id') id: string, @Body() data: any) {
-    return { id, ...data };
-  }
-
-  @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return { id };
-  }
-}
-```
-
-#### Generate Service
-
-```bash
-rikta generate service user
-# or
-rikta g s user
-```
-
-Creates `src/services/user.service.ts`:
-
-```typescript
-import { Injectable } from '@riktajs/core';
-
-@Injectable()
-export class UserService {
-  findAll() {
-    return [];
-  }
-
-  findOne(id: string) {
-    return { id };
-  }
-
-  create(data: any) {
-    return data;
-  }
-
-  update(id: string, data: any) {
-    return { id, ...data };
-  }
-
-  remove(id: string) {
-    return { id };
-  }
-}
-```
-
-#### Generate Resource
-
-```bash
-rikta generate resource user
-# or
-rikta g res user
-```
-
-Creates both controller and service with proper wiring:
-
-`src/controllers/user.controller.ts`:
-
-```typescript
-import { Controller, Get, Post, Put, Delete, Body, Param, Autowired } from '@riktajs/core';
-import { UserService } from '../services/user.service';
-
-@Controller('/users')
-export class UserController {
-  @Autowired()
-  private userService!: UserService;
-
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get('/:id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
-  }
-
-  @Post()
-  create(@Body() data: any) {
-    return this.userService.create(data);
-  }
-
-  @Put('/:id')
-  update(@Param('id') id: string, @Body() data: any) {
-    return this.userService.update(id, data);
-  }
-
-  @Delete('/:id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
-  }
-}
-```
-
-#### Generate Guard
-
-```bash
-rikta generate guard auth
-# or
-rikta g gu auth
-```
-
-Creates `src/guards/auth.guard.ts`:
-
-```typescript
-import { Injectable, CanActivate, ExecutionContext } from '@riktajs/core';
-
-@Injectable()
-export class AuthGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.getRequest();
-    // Implement your authentication logic here
-    return true;
-  }
-}
-```
-
-#### Generate Provider
-
-```bash
-rikta generate provider database-config
-# or
-rikta g p database-config
-```
-
-Creates `src/providers/database-config.provider.ts`:
-
-```typescript
-import { AbstractConfigProvider, ConfigProperty, Injectable } from '@riktajs/core';
-
-@Injectable()
-export class DatabaseConfigProvider extends AbstractConfigProvider<DatabaseConfig> {
-  @ConfigProperty({ env: 'DB_HOST' })
-  host: string = 'localhost';
-
-  @ConfigProperty({ env: 'DB_PORT', transform: Number })
-  port: number = 5432;
-
-  @ConfigProperty({ env: 'DB_DATABASE' })
-  database: string = '';
-
-  @ConfigProperty({ env: 'DB_USERNAME' })
-  username: string = '';
-
-  @ConfigProperty({ env: 'DB_PASSWORD' })
-  password: string = '';
-}
-
-interface DatabaseConfig {
-  host: string;
-  port: number;
-  database: string;
-  username: string;
-  password: string;
-}
+# Disable watch mode
+rikta dev --no-watch
 ```
 
 ## build
@@ -287,86 +94,47 @@ rikta build [options]
 
 ### Options
 
-| Option | Description |
-|--------|-------------|
-| `--watch` | Watch for changes |
-| `--clean` | Clean output directory before build |
+| Option | Alias | Description | Default |
+|--------|-------|-------------|---------|
+| `--outDir` | `-o` | Output directory | `dist` |
+| `--minify` | - | Remove comments from output | `true` |
+| `--sourcemap` | - | Generate source maps | `false` |
+| `--clean` | - | Clean output folder before build | `true` |
 
-### Example
+### Examples
 
 ```bash
 # Standard build
 rikta build
 
-# Watch mode
-rikta build --watch
+# With source maps
+rikta build --sourcemap
 
-# Clean build
-rikta build --clean
+# Custom output directory
+rikta build --outDir build
+
+# Keep previous build
+rikta build --no-clean
 ```
 
-## start
+## Global Options
 
-Start the application:
+These options work with all commands:
+
+| Option | Alias | Description |
+|--------|-------|-------------|
+| `--version` | `-v` | Show CLI version |
+| `--verbose` | `-V` | Enable verbose output |
+| `--help` | `-h` | Show help information |
+
+### Examples
 
 ```bash
-rikta start [options]
-```
+# Show version
+rikta --version
 
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `--watch` | Start in watch mode (development) |
-| `--port` | Override port |
-
-### Example
-
-```bash
-# Production mode
-rikta start
-
-# Development mode
-rikta start --watch
-
-# Custom port
-rikta start --port 8080
-```
-
-## dev
-
-Start in development mode (alias for `start --watch`):
-
-```bash
-rikta dev
-```
-
-## info
-
-Display information about the current project:
-
-```bash
-rikta info
-```
-
-Output:
-
-```
-Rikta CLI Information:
-─────────────────────────
-CLI Version: 1.0.0
-Core Version: 1.0.0
-Node Version: 20.10.0
-Package Manager: npm
-Project Root: /path/to/my-app
-```
-
-## help
-
-Display help for any command:
-
-```bash
-rikta --help
+# Get help for a command
 rikta new --help
-rikta generate --help
+rikta dev --help
+rikta build --help
 ```

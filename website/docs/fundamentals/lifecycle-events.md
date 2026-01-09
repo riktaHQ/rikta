@@ -31,7 +31,7 @@ Understanding the application lifecycle is crucial for:
 │  3. Providers registered                                    │
 │           │                                                 │
 │           ▼                                                 │
-│  4. @OnInit() hooks called                                  │
+│  4. OnProviderInit hooks called                             │
 │           │                                                 │
 │           ▼                                                 │
 │  5. Routes registered                                       │
@@ -40,7 +40,7 @@ Understanding the application lifecycle is crucial for:
 │  6. app.listen() - Server starts                            │
 │           │                                                 │
 │           ▼                                                 │
-│  7. @OnReady() hooks called                                 │
+│  7. OnApplicationListen hooks called                        │
 │           │                                                 │
 │           ▼                                                 │
 │  8. Application running...                                  │
@@ -49,7 +49,7 @@ Understanding the application lifecycle is crucial for:
 │  9. Shutdown signal received                                │
 │           │                                                 │
 │           ▼                                                 │
-│  10. @OnShutdown() hooks called                             │
+│  10. OnApplicationShutdown hooks called                     │
 │           │                                                 │
 │           ▼                                                 │
 │  11. Application terminated                                 │
@@ -59,19 +59,18 @@ Understanding the application lifecycle is crucial for:
 
 ## Lifecycle Hooks
 
-### @OnInit()
+### OnProviderInit
 
-Called when the provider is instantiated and dependencies are injected:
+Implement this interface to run code when the provider is instantiated and dependencies are injected:
 
 ```typescript
-import { Injectable, OnInit } from '@riktajs/core';
+import { Injectable, OnProviderInit } from '@riktajs/core';
 
 @Injectable()
-export class DatabaseService {
+export class DatabaseService implements OnProviderInit {
   private connection: Connection;
 
-  @OnInit()
-  async initialize() {
+  async onProviderInit() {
     console.log('Initializing database connection...');
     this.connection = await createConnection();
     console.log('Database connected!');
@@ -79,18 +78,17 @@ export class DatabaseService {
 }
 ```
 
-### @OnReady()
+### OnApplicationListen
 
-Called when the application is fully started and ready to accept requests:
+Implement this interface to run code when the application is fully started and ready to accept requests:
 
 ```typescript
-import { Injectable, OnReady } from '@riktajs/core';
+import { Injectable, OnApplicationListen } from '@riktajs/core';
 
 @Injectable()
-export class MonitoringService {
-  @OnReady()
-  async onApplicationReady() {
-    console.log('Application is ready!');
+export class MonitoringService implements OnApplicationListen {
+  async onApplicationListen(address: string) {
+    console.log(`Application is ready at ${address}!`);
     await this.registerWithServiceDiscovery();
     await this.startHealthChecks();
   }
@@ -105,24 +103,23 @@ export class MonitoringService {
 }
 ```
 
-### @OnShutdown()
+### OnApplicationShutdown
 
-Called when the application receives a shutdown signal:
+Implement this interface to run code when the application receives a shutdown signal:
 
 ```typescript
-import { Injectable, OnShutdown, Autowired } from '@riktajs/core';
+import { Injectable, OnApplicationShutdown, Autowired } from '@riktajs/core';
 
 @Injectable()
-export class CleanupService {
+export class CleanupService implements OnApplicationShutdown {
   @Autowired()
   private database!: DatabaseService;
 
   @Autowired()
   private cache!: CacheService;
 
-  @OnShutdown()
-  async cleanup() {
-    console.log('Shutting down gracefully...');
+  async onApplicationShutdown(signal?: string) {
+    console.log(`Shutting down gracefully (${signal})...`);
     
     // Close database connections
     await this.database.disconnect();
@@ -144,9 +141,8 @@ All lifecycle hooks support async operations:
 
 ```typescript
 @Injectable()
-export class StartupService {
-  @OnInit()
-  async init() {
+export class StartupService implements OnProviderInit {
+  async onProviderInit() {
     await this.loadConfiguration();
     await this.warmupCache();
     await this.validateConnections();
@@ -172,20 +168,18 @@ Lifecycle hooks are executed in the order providers are registered:
 
 ```typescript
 @Injectable()
-export class ServiceA {
-  @OnInit()
-  init() {
+export class ServiceA implements OnProviderInit {
+  onProviderInit() {
     console.log('ServiceA initialized'); // Called first
   }
 }
 
 @Injectable()
-export class ServiceB {
+export class ServiceB implements OnProviderInit {
   @Autowired()
   private serviceA!: ServiceA;
 
-  @OnInit()
-  init() {
+  onProviderInit() {
     console.log('ServiceB initialized'); // Called after ServiceA
   }
 }
@@ -196,14 +190,13 @@ export class ServiceB {
 ### Database Connection Manager
 
 ```typescript
-import { Injectable, OnInit, OnShutdown } from '@riktajs/core';
+import { Injectable, OnProviderInit, OnApplicationShutdown } from '@riktajs/core';
 
 @Injectable()
-export class DatabaseManager {
+export class DatabaseManager implements OnProviderInit, OnApplicationShutdown {
   private pool: ConnectionPool;
 
-  @OnInit()
-  async connect() {
+  async onProviderInit() {
     console.log('Creating database connection pool...');
     this.pool = await createPool({
       host: process.env.DB_HOST,
@@ -214,8 +207,7 @@ export class DatabaseManager {
     console.log('Database pool created');
   }
 
-  @OnShutdown()
-  async disconnect() {
+  async onApplicationShutdown() {
     console.log('Closing database connections...');
     await this.pool.end();
     console.log('Database connections closed');
@@ -230,19 +222,18 @@ export class DatabaseManager {
 ### Health Check Service
 
 ```typescript
-import { Injectable, OnReady, Autowired } from '@riktajs/core';
+import { Injectable, OnApplicationListen, Autowired } from '@riktajs/core';
 
 @Injectable()
-export class HealthCheckService {
+export class HealthCheckService implements OnApplicationListen {
   @Autowired()
   private database!: DatabaseManager;
 
   private isReady = false;
 
-  @OnReady()
-  async onReady() {
+  async onApplicationListen(address: string) {
     this.isReady = true;
-    console.log('Health check: Application ready');
+    console.log(`Health check: Application ready at ${address}`);
   }
 
   async checkHealth(): Promise<HealthStatus> {
@@ -278,10 +269,10 @@ interface HealthStatus {
 ### Graceful Shutdown Handler
 
 ```typescript
-import { Injectable, OnShutdown, Autowired } from '@riktajs/core';
+import { Injectable, OnApplicationShutdown, Autowired } from '@riktajs/core';
 
 @Injectable()
-export class GracefulShutdown {
+export class GracefulShutdown implements OnApplicationShutdown {
   private shutdownInProgress = false;
 
   @Autowired()
@@ -290,8 +281,7 @@ export class GracefulShutdown {
   @Autowired()
   private messageQueue!: MessageQueueService;
 
-  @OnShutdown()
-  async shutdown() {
+  async onApplicationShutdown(signal?: string) {
     if (this.shutdownInProgress) return;
     this.shutdownInProgress = true;
 
@@ -336,11 +326,11 @@ Rikta automatically handles common shutdown signals:
 ```typescript
 // Rikta handles this automatically
 process.on('SIGTERM', () => {
-  // @OnShutdown() hooks are called
+  // OnApplicationShutdown hooks are called
 });
 
 process.on('SIGINT', () => {
-  // @OnShutdown() hooks are called
+  // OnApplicationShutdown hooks are called
 });
 ```
 
@@ -350,15 +340,13 @@ process.on('SIGINT', () => {
 
 ```typescript
 // ✅ Good - quick initialization
-@OnInit()
-async init() {
+async onProviderInit() {
   this.config = this.loadConfig();
   await this.validateConfig();
 }
 
 // ❌ Avoid - slow startup
-@OnInit()
-async init() {
+async onProviderInit() {
   await this.loadAllDataFromDatabase(); // Blocks startup
 }
 ```
@@ -366,8 +354,7 @@ async init() {
 ### 2. Handle Errors Gracefully
 
 ```typescript
-@OnInit()
-async init() {
+async onProviderInit() {
   try {
     await this.connect();
   } catch (error) {
@@ -380,8 +367,7 @@ async init() {
 ### 3. Set Timeouts for Shutdown
 
 ```typescript
-@OnShutdown()
-async shutdown() {
+async onApplicationShutdown(signal?: string) {
   const timeout = setTimeout(() => {
     console.error('Shutdown timeout - forcing exit');
     process.exit(1);
@@ -397,17 +383,15 @@ async shutdown() {
 ```typescript
 // Database should initialize before services that use it
 @Injectable()
-export class DatabaseService {
-  @OnInit()
-  async init() { /* Connect first */ }
+export class DatabaseService implements OnProviderInit {
+  async onProviderInit() { /* Connect first */ }
 }
 
 @Injectable()
-export class UserService {
+export class UserService implements OnProviderInit {
   @Autowired()
   private database!: DatabaseService; // Depends on database
 
-  @OnInit()
-  async init() { /* Database already connected */ }
+  async onProviderInit() { /* Database already connected */ }
 }
 ```

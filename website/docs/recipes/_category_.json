@@ -1,9 +1,0 @@
-{
-  "label": "Recipes",
-  "position": 9,
-  "collapsed": false,
-  "link": {
-    "type": "generated-index",
-    "description": "Real-world examples and patterns for Rikta applications."
-  }
-}

@@ -103,6 +103,42 @@ import { ApiResponse } from '@riktajs/swagger';
 findOne(@Param('id') id: string) {}
 ```
 
+**Using Zod schemas for responses (recommended):**
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  createdAt: z.date(),
+});
+
+@Get('/:id')
+@ApiResponse({
+  status: 200,
+  description: 'User found',
+  schema: UserSchema,  // Zod schema is automatically converted
+})
+@ApiResponse({
+  status: 404,
+  description: 'User not found',
+})
+findOne(@Param('id') id: string) {
+  // Return type matches the schema
+}
+
+// Array responses
+@Get()
+@ApiResponse({
+  status: 200,
+  description: 'List of users',
+  schema: z.array(UserSchema),  // Array of users
+})
+findAll() {}
+```
+
 Common response decorators:
 
 ```typescript
@@ -440,3 +476,145 @@ export class UserController {
   }
 }
 ```
+
+## Best Practices
+
+### 1. Always Use @ApiTags()
+
+Group related endpoints for better organization:
+
+```typescript
+@Controller('/users')
+@ApiTags('Users')  // ✅ Good - all user endpoints grouped together
+export class UserController {}
+```
+
+### 2. Prefer Zod Over Manual Schemas
+
+Zod provides validation + documentation in one place:
+
+```typescript
+// ✅ Good - Single source of truth
+const CreateUserSchema = z.object({
+  name: z.string().min(1).describe('User name'),
+  email: z.string().email().describe('Email address'),
+});
+
+@Post()
+@ApiBody({ schema: CreateUserSchema })
+create(@Body(CreateUserSchema) data: z.infer<typeof CreateUserSchema>) {}
+
+// ❌ Avoid - Duplication and no validation
+@Post()
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: { name: { type: 'string' }, email: { type: 'string' } },
+  },
+})
+create(@Body() data: any) {}
+```
+
+### 3. Document All Response Status Codes
+
+Help consumers understand all possible outcomes:
+
+```typescript
+@Get('/:id')
+@ApiOkResponse({ description: 'User found' })           // ✅
+@ApiNotFoundResponse({ description: 'User not found' }) // ✅
+@ApiBadRequestResponse({ description: 'Invalid ID' })   // ✅
+findOne(@Param('id') id: string) {}
+```
+
+### 4. Use Descriptive Summaries
+
+```typescript
+// ✅ Good - Clear and descriptive
+@ApiOperation({ summary: 'Get user by ID' })
+
+// ❌ Avoid - Too vague
+@ApiOperation({ summary: 'Get' })
+```
+
+### 5. Add Examples for Complex Schemas
+
+```typescript
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      filters: {
+        type: 'object',
+        example: { status: 'active', role: 'admin' },  // ✅ Helpful example
+      },
+    },
+  },
+})
+```
+
+### 6. Use .describe() in Zod Schemas
+
+Descriptions appear in generated OpenAPI docs:
+
+```typescript
+const schema = z.object({
+  email: z.string().email().describe('User email address'),  // ✅
+  age: z.number().int().min(0).describe('User age in years'), // ✅
+});
+```
+
+## Common Patterns
+
+### Pagination
+
+```typescript
+@Get()
+@ApiQuery({ name: 'page', type: 'integer', required: false, default: 1 })
+@ApiQuery({ name: 'limit', type: 'integer', required: false, default: 10 })
+@ApiResponse({
+  status: 200,
+  schema: z.object({
+    data: z.array(ItemSchema),
+    meta: z.object({
+      page: z.number(),
+      limit: z.number(),
+      total: z.number(),
+    }),
+  }),
+})
+findAll(@Query('page') page?: number, @Query('limit') limit?: number) {}
+```
+
+### Search and Filter
+
+```typescript
+@Get('/search')
+@ApiQuery({ name: 'q', type: 'string', description: 'Search query' })
+@ApiQuery({ name: 'status', enum: ['active', 'inactive'], required: false })
+@ApiQuery({ name: 'sortBy', enum: ['name', 'date'], required: false })
+search(
+  @Query('q') query: string,
+  @Query('status') status?: string,
+  @Query('sortBy') sortBy?: string,
+) {}
+```
+
+### File Upload with Metadata
+
+```typescript
+@Post('/upload')
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      file: { type: 'string', format: 'binary' },
+      title: { type: 'string' },
+      description: { type: 'string' },
+    },
+    required: ['file', 'title'],
+  },
+})
+upload(@Body() data: { file: any; title: string; description?: string }) {}
+```
+

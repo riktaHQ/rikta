@@ -40,14 +40,6 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Security',
-      items: [
-        'security/authentication',
-        'security/authorization',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Database',
       items: [
         'database/typeorm',
@@ -68,13 +60,6 @@ const sidebars: SidebarsConfig = {
       items: [
         'cli/overview',
         'cli/commands'
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Recipes',
-      items: [
-        'recipes/example-app',
       ],
     },
     {

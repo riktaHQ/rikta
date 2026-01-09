@@ -37,10 +37,8 @@ That's it! Your new Rikta application is running at `http://localhost:3000`.
 | Command | Description |
 |---------|-------------|
 | `new <name>` | Create a new Rikta project |
-| `generate <type> <name>` | Generate a component (controller, service, etc.) |
-| `build` | Build the project for production |
-| `start` | Start the application |
 | `dev` | Start in development mode with hot reload |
+| `build` | Build the project for production |
 
 ## Project Structure
 

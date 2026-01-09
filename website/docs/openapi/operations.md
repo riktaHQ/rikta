@@ -8,22 +8,25 @@ Learn how to document complex API operations with detailed request/response spec
 
 ## Request Documentation
 
-### Content Types
+### Request Body with Content Types
 
-Specify supported content types:
+You can document request bodies with different content types using `@ApiBody`:
 
 ```typescript
-import { ApiConsumes, ApiProduces } from '@riktajs/swagger';
+import { ApiBody } from '@riktajs/swagger';
 
 @Post()
-@ApiConsumes('application/json')
-@ApiProduces('application/json')
+@ApiBody({
+  description: 'User data in JSON format',
+  schema: {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      email: { type: 'string', format: 'email' },
+    },
+  },
+})
 create(@Body() data: CreateUserDto) {}
-
-// Multiple content types
-@Post('/upload')
-@ApiConsumes('multipart/form-data')
-uploadFile(@Body() file: FileUploadDto) {}
 ```
 
 ### File Upload
@@ -32,8 +35,8 @@ Document file upload endpoints:
 
 ```typescript
 @Post('/avatar')
-@ApiConsumes('multipart/form-data')
 @ApiBody({
+  description: 'Upload avatar image',
   schema: {
     type: 'object',
     properties: {
@@ -45,13 +48,13 @@ Document file upload endpoints:
     },
   },
 })
-@ApiResponse({ status: 200, description: 'Avatar uploaded' })
+@ApiResponse({ status: 200, description: 'Avatar uploaded successfully' })
 uploadAvatar(@Body() file: any) {}
 
 // Multiple files
 @Post('/documents')
-@ApiConsumes('multipart/form-data')
 @ApiBody({
+  description: 'Upload multiple documents',
   schema: {
     type: 'object',
     properties: {
@@ -61,6 +64,7 @@ uploadAvatar(@Body() file: any) {}
           type: 'string',
           format: 'binary',
         },
+        description: 'Document files',
       },
     },
   },
@@ -186,14 +190,17 @@ findOne(@Param('id') id: string) {}
 ### Bearer Token
 
 ```typescript
-setupSwagger(app, {
-  // ...
-  securityDefinitions: {
-    bearerAuth: {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      description: 'Enter JWT token',
+// Configure in bootstrap
+await app.server.register(swaggerPlugin, {
+  info: { title: 'My API', version: '1.0.0' },
+  config: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter JWT token',
+      },
     },
   },
 });
@@ -212,12 +219,15 @@ getProfile() {}
 ### API Key
 
 ```typescript
-setupSwagger(app, {
-  securityDefinitions: {
-    apiKey: {
-      type: 'apiKey',
-      name: 'X-API-Key',
-      in: 'header',
+await app.server.register(swaggerPlugin, {
+  info: { title: 'My API', version: '1.0.0' },
+  config: {
+    securitySchemes: {
+      apiKey: {
+        type: 'apiKey',
+        name: 'X-API-Key',
+        in: 'header',
+      },
     },
   },
 });
@@ -230,17 +240,20 @@ export class WebhookController {}
 ### OAuth2
 
 ```typescript
-setupSwagger(app, {
-  securityDefinitions: {
-    oauth2: {
-      type: 'oauth2',
-      flows: {
-        authorizationCode: {
-          authorizationUrl: 'https://example.com/oauth/authorize',
-          tokenUrl: 'https://example.com/oauth/token',
-          scopes: {
-            'read:users': 'Read user information',
-            'write:users': 'Modify user information',
+await app.server.register(swaggerPlugin, {
+  info: { title: 'My API', version: '1.0.0' },
+  config: {
+    securitySchemes: {
+      oauth2: {
+        type: 'oauth2',
+        flows: {
+          authorizationCode: {
+            authorizationUrl: 'https://example.com/oauth/authorize',
+            tokenUrl: 'https://example.com/oauth/token',
+            scopes: {
+              'read:users': 'Read user information',
+              'write:users': 'Modify user information',
+            },
           },
         },
       },
@@ -326,20 +339,17 @@ export class WebhookController {
   summary: 'Server-Sent Events stream',
   description: 'Subscribe to real-time updates',
 })
-@ApiProduces('text/event-stream')
 @ApiResponse({
   status: 200,
-  description: 'SSE stream established',
-  content: {
-    'text/event-stream': {
-      schema: {
-        type: 'string',
-        example: 'data: {"type":"update","id":"123"}\n\n',
-      },
-    },
+  description: 'SSE stream of events',
+  schema: {
+    type: 'string',
+    description: 'Server-Sent Events stream',
   },
 })
-streamEvents() {}
+streamEvents() {
+  // Return SSE stream
+}
 ```
 
 ### Bulk Operations
@@ -445,12 +455,16 @@ export class UserPostsController {}
 ### 5. Version Your API
 
 ```typescript
-setupSwagger(app, {
-  title: 'My API',
-  version: '2.0.0',
-  servers: [
-    { url: '/api/v2', description: 'Version 2' },
-    { url: '/api/v1', description: 'Version 1 (deprecated)' },
-  ],
+await app.server.register(swaggerPlugin, {
+  info: {
+    title: 'My API',
+    version: '2.0.0',
+  },
+  config: {
+    servers: [
+      { url: '/api/v2', description: 'Version 2' },
+      { url: '/api/v1', description: 'Version 1 (deprecated)' },
+    ],
+  },
 });
 ```

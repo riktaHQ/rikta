@@ -161,12 +161,24 @@ export class RolesGuard implements CanActivate {
 
 ### Roles Decorator
 
-Create a decorator to specify required roles:
+Create a custom decorator to specify required roles:
 
 ```typescript
-import { SetMetadata } from '@riktajs/core';
+import 'reflect-metadata';
 
-export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
+const ROLES_KEY = 'roles';
+
+export const Roles = (...roles: string[]): MethodDecorator & ClassDecorator => {
+  return (target: any, propertyKey?: string | symbol) => {
+    if (propertyKey) {
+      // Method decorator
+      Reflect.defineMetadata(ROLES_KEY, roles, target.constructor, propertyKey);
+    } else {
+      // Class decorator
+      Reflect.defineMetadata(ROLES_KEY, roles, target);
+    }
+  };
+};
 ```
 
 ### Usage
