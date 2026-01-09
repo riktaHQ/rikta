@@ -84,6 +84,21 @@
   font-weight: 500;
 }
 
+/* Mobile menu fix */
+.navbar-sidebar {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.navbar-sidebar__backdrop {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.navbar-sidebar__items {
+  height: calc(100vh - var(--ifm-navbar-height));
+  height: calc(100dvh - var(--ifm-navbar-height));
+}
 
 /* Hero section enhancements */
 .hero {
