@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "declaration": true,
-    "declarationMap": true,
+    "removeComments": true,
     "resolveJsonModule": true
   },
   "include": ["src"],

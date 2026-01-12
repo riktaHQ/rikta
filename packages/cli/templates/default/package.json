@@ -17,10 +17,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@riktajs/core": "^0.4.4"
+    "@riktajs/core": "^0.4.6"
   },
   "devDependencies": {
-    "@riktajs/cli": "^0.1.13",
+    "@riktajs/cli": "^0.1.14",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
   },

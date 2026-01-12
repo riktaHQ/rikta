@@ -1,6 +1,6 @@
 {
   "name": "@riktajs/core",
-  "version": "0.4.4",
+  "version": "0.4.6",
   "description": "A fast and modern TypeScript backend framework with zero-config autowiring, powered by Fastify",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,8 @@
     "dist"
   ],
   "scripts": {
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "dev": "ts-node-dev --respawn src/index.ts",
     "test": "vitest run",

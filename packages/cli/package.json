@@ -1,6 +1,6 @@
 {
   "name": "@riktajs/cli",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "CLI tool for Rikta framework - scaffold, develop and build projects",
   "type": "module",
   "main": "dist/index.js",
@@ -13,11 +13,9 @@
     "templates"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run build",
     "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
