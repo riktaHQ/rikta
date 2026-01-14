@@ -51,7 +51,7 @@ const config: Config = {
       title: 'Rikta',
       logo: {
         alt: 'Rikta Logo',
-        src: 'img/logo.svg',
+        src: 'img/rikta_logo.svg',
       },
       items: [
         {
