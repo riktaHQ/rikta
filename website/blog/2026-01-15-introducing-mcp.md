@@ -401,9 +401,8 @@ We're excited to see what you'll build with `@riktajs/mcp`! Here are some ideas:
 
 Join our growing community:
 
-- 💬 [Discord](https://discord.gg/rikta)
+- 💬 [Discord](https://discord.gg/HTh8pheKVW)
 - 🐙 [GitHub](https://github.com/riktahq/rikta)
-- 🐦 [Twitter](https://twitter.com/riktajs)
 
 We can't wait to see what you build! Share your MCP servers with us on Twitter using **#RiktaMCP**.
 
