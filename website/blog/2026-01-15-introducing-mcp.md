@@ -33,14 +33,14 @@ Building MCP servers from scratch can be complex. `@riktajs/mcp` brings Rikta's 
 Install the package:
 
 ```bash
-npm install @riktajs/mcp zod
+npm install @riktajs/mcp
 ```
 
 Create a simple calculator service:
 
 ```typescript
-import { Injectable } from '@riktajs/core';
-import { MCPTool, z } from '@riktajs/mcp';
+import { Injectable, z } from '@riktajs/core';
+import { MCPTool } from '@riktajs/mcp';
 
 @Injectable()
 class CalculatorService {
