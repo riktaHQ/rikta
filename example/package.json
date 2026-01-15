@@ -24,6 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@riktajs/core": "*",
+    "@riktajs/mcp": "*",
     "@riktajs/swagger": "*"
   },
   "devDependencies": {

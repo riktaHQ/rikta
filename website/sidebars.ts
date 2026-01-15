@@ -57,6 +57,18 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'MCP',
+      items: [
+        'mcp/introduction',
+        'mcp/tools',
+        'mcp/resources',
+        'mcp/prompts',
+        'mcp/configuration',
+        'mcp/examples',
+      ],
+    },
+    {
+      type: 'category',
       label: 'CLI',
       items: [
         'cli/overview',

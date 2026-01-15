@@ -7,12 +7,14 @@
  * - Dependency injection with @Autowired
  * - REST API with full CRUD operations
  * - Automatic Swagger/OpenAPI documentation
+ * - MCP (Model Context Protocol) server for AI assistants
  *
  * No manual provider registration needed - everything is auto-discovered!
  */
 
 import { Rikta } from '@riktajs/core';
 import { swaggerPlugin } from '@riktajs/swagger';
+import { registerMCPServer } from '@riktajs/mcp';
 import { APP_CONFIG } from "./config/app.config";
 
 async function bootstrap() {
@@ -44,10 +46,21 @@ async function bootstrap() {
     },
   });
 
+  // Register MCP server for AI assistant integration
+  await registerMCPServer(app, {
+    serverInfo: {
+      name: config.name || 'rikta-example-mcp',
+      version: '1.0.0',
+    },
+    instructions: 'This MCP server provides file system tools for listing and reading files, plus code review prompts.',
+    enableSSE: true,
+  });
+
   await app.listen();
   console.log('🚀 Rikta Example App Starting...', config.name);
   console.log(`📚 Swagger UI: http://localhost:${process.env.PORT || 3000}/docs`);
   console.log(`📋 OpenAPI JSON: http://localhost:${process.env.PORT || 3000}/docs/json`);
+  console.log(`🤖 MCP Endpoint: http://localhost:${process.env.PORT || 3000}/mcp`);
 }
 
 bootstrap().catch(console.error);
