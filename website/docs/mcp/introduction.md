@@ -26,7 +26,7 @@ The Model Context Protocol is an open standard that allows AI applications to se
 ## Installation
 
 ```bash
-npm install @riktajs/mcp zod
+npm install @riktajs/mcp
 ```
 
 ## Quick Start
@@ -34,8 +34,8 @@ npm install @riktajs/mcp zod
 ### Basic Setup
 
 ```typescript
-import { Rikta, Injectable } from '@riktajs/core';
-import { registerMCPServer, MCPTool, z } from '@riktajs/mcp';
+import { Rikta, Injectable, z } from '@riktajs/core';
+import { registerMCPServer, MCPTool } from '@riktajs/mcp';
 
 @Injectable()
 class CalculatorService {
@@ -154,10 +154,3 @@ npx @modelcontextprotocol/inspector http://localhost:3000/mcp
 │             (Database, APIs, Business Logic)                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-## Next Steps
-
-- Learn about [Tools](./tools) - Create callable functions for AI
-- Learn about [Resources](./resources) - Expose data sources
-- Learn about [Prompts](./prompts) - Create prompt templates
-- Explore [Configuration](./configuration) - Advanced setup options

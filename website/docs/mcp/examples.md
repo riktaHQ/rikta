@@ -11,8 +11,8 @@ Complete examples demonstrating `@riktajs/mcp` integration patterns.
 A complete MCP server for file system operations:
 
 ```typescript
-import { Rikta, Injectable } from '@riktajs/core';
-import { registerMCPServer, MCPTool, MCPResource, MCPPrompt, z } from '@riktajs/mcp';
+import { Rikta, Injectable, z } from '@riktajs/core';
+import { registerMCPServer, MCPTool, MCPResource, MCPPrompt } from '@riktajs/mcp';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 
@@ -170,8 +170,8 @@ bootstrap();
 An MCP server for database operations:
 
 ```typescript
-import { Rikta, Injectable, Autowired } from '@riktajs/core';
-import { registerMCPServer, MCPTool, MCPResource, z } from '@riktajs/mcp';
+import { Rikta, Injectable, Autowired, z } from '@riktajs/core';
+import { registerMCPServer, MCPTool, MCPResource } from '@riktajs/mcp';
 import { DataSource, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 
@@ -324,8 +324,8 @@ class DatabaseMCPService {
 An MCP server for code analysis:
 
 ```typescript
-import { Rikta, Injectable } from '@riktajs/core';
-import { registerMCPServer, MCPTool, MCPPrompt, z } from '@riktajs/mcp';
+import { Rikta, Injectable, z } from '@riktajs/core';
+import { registerMCPServer, MCPTool, MCPPrompt } from '@riktajs/mcp';
 import { promises as fs } from 'fs';
 import { glob } from 'glob';
 

@@ -11,8 +11,8 @@ MCP Tools are functions that AI assistants can call to perform actions. They are
 Use `@MCPTool` to mark a method as an MCP tool:
 
 ```typescript
-import { Injectable } from '@riktajs/core';
-import { MCPTool, z } from '@riktajs/mcp';
+import { Injectable, z } from '@riktajs/core';
+import { MCPTool} from '@riktajs/mcp';
 
 @Injectable()
 class FileService {
@@ -71,8 +71,6 @@ interface CallToolResult {
 ### Basic Types
 
 ```typescript
-import { z } from '@riktajs/mcp';
-
 // String with description
 z.string().describe('File path to read')
 
@@ -125,8 +123,8 @@ async bulkDelete(params: { ids: string[]; force?: boolean }) {
 ### File Operations
 
 ```typescript
-import { Injectable } from '@riktajs/core';
-import { MCPTool, z } from '@riktajs/mcp';
+import { Injectable, z } from '@riktajs/core';
+import { MCPTool } from '@riktajs/mcp';
 import { promises as fs } from 'fs';
 
 @Injectable()
@@ -190,125 +188,6 @@ class FileToolsService {
         isError: true,
       };
     }
-  }
-}
-```
-
-### Database Operations
-
-```typescript
-import { Injectable, Autowired } from '@riktajs/core';
-import { MCPTool, z } from '@riktajs/mcp';
-import { UserRepository } from './user.repository';
-
-@Injectable()
-class UserToolsService {
-  @Autowired()
-  private userRepository!: UserRepository;
-
-  @MCPTool({
-    name: 'search_users',
-    description: 'Search for users by name or email',
-    inputSchema: z.object({
-      query: z.string().describe('Search query'),
-      limit: z.number().min(1).max(100).optional().default(10),
-      offset: z.number().min(0).optional().default(0),
-    }),
-  })
-  async searchUsers(params: { query: string; limit?: number; offset?: number }) {
-    const users = await this.userRepository.search(
-      params.query,
-      params.limit,
-      params.offset
-    );
-
-    return {
-      content: [{
-        type: 'text' as const,
-        text: `Found ${users.length} users:\n\n` +
-              users.map(u => `- ${u.name} (${u.email})`).join('\n'),
-      }],
-    };
-  }
-
-  @MCPTool({
-    name: 'get_user',
-    description: 'Get user details by ID',
-    inputSchema: z.object({
-      id: z.string().uuid().describe('User ID'),
-    }),
-  })
-  async getUser(params: { id: string }) {
-    const user = await this.userRepository.findById(params.id);
-    
-    if (!user) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `User not found: ${params.id}`,
-        }],
-        isError: true,
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text' as const,
-        text: JSON.stringify(user, null, 2),
-      }],
-    };
-  }
-}
-```
-
-### API Integration
-
-```typescript
-import { Injectable } from '@riktajs/core';
-import { MCPTool, z } from '@riktajs/mcp';
-
-@Injectable()
-class WeatherService {
-  @MCPTool({
-    name: 'get_weather',
-    description: 'Get current weather for a location',
-    inputSchema: z.object({
-      city: z.string().describe('City name'),
-      country: z.string().length(2).optional().describe('Country code (ISO 3166-1)'),
-      units: z.enum(['metric', 'imperial']).optional().default('metric'),
-    }),
-  })
-  async getWeather(params: { city: string; country?: string; units?: string }) {
-    const location = params.country 
-      ? `${params.city}, ${params.country}` 
-      : params.city;
-
-    // Call external weather API
-    const response = await fetch(
-      `https://api.weather.example.com/current?q=${encodeURIComponent(location)}&units=${params.units}`
-    );
-    
-    if (!response.ok) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `Failed to fetch weather for ${location}`,
-        }],
-        isError: true,
-      };
-    }
-
-    const data = await response.json();
-
-    return {
-      content: [{
-        type: 'text' as const,
-        text: `Weather in ${location}:\n` +
-              `🌡️ Temperature: ${data.temp}°${params.units === 'imperial' ? 'F' : 'C'}\n` +
-              `💧 Humidity: ${data.humidity}%\n` +
-              `🌤️ Conditions: ${data.description}`,
-      }],
-    };
   }
 }
 ```

@@ -290,9 +290,3 @@ const mcpConfig = createMCPConfig({
 // mcpConfig is fully typed with defaults applied
 await registerMCPServer(app, mcpConfig);
 ```
-
-## Next Steps
-
-- [Tools](./tools) - Create callable functions
-- [Resources](./resources) - Expose data sources
-- [Prompts](./prompts) - Create prompt templates
