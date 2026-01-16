@@ -4,6 +4,8 @@
  * TypeScript interfaces and types for MCP integration.
  */
 
+import type { ZodType } from 'zod';
+
 // ============================================================================
 // Zod Schema Type
 // ============================================================================
@@ -11,7 +13,7 @@
 /**
  * Generic Zod schema type - accepts any Zod schema
  */
-export type ZodSchema = any;
+export type ZodSchema = ZodType<any, any, any>;
 
 // ============================================================================
 // MCP Tool Types

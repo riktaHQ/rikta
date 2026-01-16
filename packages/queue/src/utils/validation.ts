@@ -81,7 +81,7 @@ export class JobSchema<T> {
       return [];
     }
     
-    return result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+    return result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`);
   }
 
   /**
@@ -100,7 +100,7 @@ export class JobSchemaValidationError extends Error {
     message: string,
     public readonly zodError: ZodError
   ) {
-    const details = zodError.errors
+    const details = zodError.issues
       .map(e => `${e.path.join('.')}: ${e.message}`)
       .join(', ');
     
@@ -112,7 +112,7 @@ export class JobSchemaValidationError extends Error {
    * Get formatted validation errors
    */
   getErrors(): Array<{ path: string; message: string }> {
-    return this.zodError.errors.map(e => ({
+    return this.zodError.issues.map(e => ({
       path: e.path.join('.'),
       message: e.message,
     }));
@@ -151,7 +151,7 @@ export const CommonJobSchemas = {
     title: z.string().max(100),
     message: z.string().max(1000),
     type: z.enum(['info', 'warning', 'error', 'success']).default('info'),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   }),
 
   /**
@@ -161,7 +161,7 @@ export const CommonJobSchemas = {
     fileId: z.string(),
     filePath: z.string(),
     operation: z.enum(['resize', 'compress', 'convert', 'thumbnail']),
-    options: z.record(z.unknown()).optional(),
+    options: z.record(z.string(), z.unknown()).optional(),
   }),
 
   /**
@@ -170,7 +170,7 @@ export const CommonJobSchemas = {
   webhook: z.object({
     url: z.string().url(),
     method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).default('POST'),
-    headers: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     body: z.unknown().optional(),
     timeout: z.number().positive().optional().default(30000),
   }),

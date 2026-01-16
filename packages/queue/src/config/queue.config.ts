@@ -75,7 +75,7 @@ export function loadQueueConfig(overrides?: Partial<QueueConfigInput>): QueueCon
   const result = QueueConfigSchema.safeParse(merged);
   
   if (!result.success) {
-    const errors = result.error.errors
+    const errors = result.error.issues
       .map(e => `${e.path.join('.')}: ${e.message}`)
       .join(', ');
     throw new QueueConfigError(`Invalid queue configuration: ${errors}`);

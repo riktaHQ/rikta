@@ -16,12 +16,13 @@ export interface ParamMetadata {
 /**
  * Type guard to check if a value is a Zod schema
  * Uses duck typing to detect Zod schemas without importing the full library
+ * Compatible with both Zod v3 (_def) and Zod v4 (_zod)
  */
 function isZodType(value: unknown): value is ZodType<unknown> {
   return (
     value !== null &&
     typeof value === 'object' &&
-    '_def' in value &&
+    ('_zod' in value || '_def' in value) &&
     'safeParse' in value &&
     typeof (value as { safeParse: unknown }).safeParse === 'function'
   );

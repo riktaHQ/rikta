@@ -4,18 +4,23 @@
  * Utilities for converting Zod schemas to JSON Schema format
  * compatible with @platformatic/mcp.
  */
-import type { ZodType, ZodTypeDef } from 'zod';
-import { zodToJsonSchema, type JsonSchema7Type } from 'zod-to-json-schema';
+import { z, type ZodType } from 'zod';
+
+/**
+ * JSON Schema type (simplified)
+ */
+export type JsonSchema = Record<string, unknown>;
 
 /**
  * Type guard to check if a value is a Zod schema
  * Uses duck typing to detect Zod schemas without requiring the full library
+ * Compatible with both Zod v3 (_def) and Zod v4 (_zod)
  */
-export function isZodSchema(value: unknown): value is ZodType<unknown, ZodTypeDef, unknown> {
+export function isZodSchema(value: unknown): value is ZodType<unknown> {
   return (
     value !== null &&
     typeof value === 'object' &&
-    '_def' in value &&
+    ('_zod' in value || '_def' in value) &&
     'safeParse' in value &&
     typeof (value as { safeParse: unknown }).safeParse === 'function'
   );
@@ -47,17 +52,15 @@ export function isZodSchema(value: unknown): value is ZodType<unknown, ZodTypeDe
  * // }
  * ```
  */
-export function zodToMCPSchema(schema: ZodType): JsonSchema7Type {
-  const jsonSchema = zodToJsonSchema(schema, {
-    target: 'jsonSchema7',
-    $refStrategy: 'none', // Inline all references
-  });
+export function zodToMCPSchema(schema: ZodType): JsonSchema {
+  // Use Zod v4 native toJSONSchema
+  const jsonSchema = z.toJSONSchema(schema) as JsonSchema;
 
   // Remove $schema property as MCP doesn't need it
   if (typeof jsonSchema === 'object' && jsonSchema !== null) {
-    const result = { ...jsonSchema } as Record<string, unknown>;
+    const result = { ...jsonSchema };
     delete result.$schema;
-    return result as JsonSchema7Type;
+    return result;
   }
 
   return jsonSchema;
@@ -71,7 +74,7 @@ export function zodToMCPSchema(schema: ZodType): JsonSchema7Type {
  */
 export function toMCPSchema(
   schemaOrUndefined: ZodType | undefined
-): JsonSchema7Type | undefined {
+): JsonSchema | undefined {
   if (!schemaOrUndefined) {
     return undefined;
   }

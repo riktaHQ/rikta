@@ -37,12 +37,11 @@
     "@riktajs/core": ">=0.4.3",
     "fastify": ">=5.0.0",
     "reflect-metadata": ">=0.2.0",
-    "zod": ">=3.20.0"
+    "zod": ">=4.0.0"
   },
   "dependencies": {
     "@platformatic/mcp": "^1.0.0",
-    "fastify-plugin": "^5.0.1",
-    "zod-to-json-schema": "^3.25.1"
+    "fastify-plugin": "^5.0.1"
   },
   "devDependencies": {
     "@riktajs/core": "*",
@@ -52,7 +51,7 @@
     "reflect-metadata": "^0.2.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
-    "zod": "^3.25.76"
+    "zod": "^4.3.5"
   },
   "engines": {
     "node": ">=20.0.0"

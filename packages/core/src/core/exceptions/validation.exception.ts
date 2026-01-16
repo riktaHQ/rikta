@@ -48,7 +48,7 @@ export class ValidationException extends HttpException {
   constructor(zodError: ZodError, message: string = 'Validation failed') {
     // Transform Zod issues to structured format
     const errors = zodError.issues.map((issue: ZodIssue): ValidationErrorDetails => ({
-      path: issue.path,
+      path: issue.path as (string | number)[],
       message: issue.message,
       code: issue.code,
       ...(('expected' in issue) ? { expected: String(issue.expected) } : {}),

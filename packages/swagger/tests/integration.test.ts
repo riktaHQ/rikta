@@ -38,7 +38,7 @@ const CreateUserSchema = z.object({
 const ErrorSchema = z.object({
   error: z.string(),
   code: z.string(),
-  details: z.record(z.string()).optional(),
+  details: z.record(z.string(), z.string()).optional(),
 });
 
 // ============================================================================

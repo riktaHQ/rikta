@@ -278,7 +278,7 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
         return method.call(processor, job);
       },
       {
-        connection: this.connectionManager.getClient(),
+        connection: this.connectionManager.getClient() as any,
         concurrency: concurrency || this.config.defaultConcurrency || 1,
         limiter: rateLimiter || this.config.defaultRateLimiter,
         ...workerOptions,
@@ -301,12 +301,12 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
 
   private async createQueue(name: string): Promise<void> {
     const queue = new Queue(name, {
-      connection: this.connectionManager.getClient(),
+      connection: this.connectionManager.getClient() as any,
     });
 
     // Create queue events for monitoring
     const queueEvents = new QueueEvents(name, {
-      connection: this.connectionManager.getClient(),
+      connection: this.connectionManager.getClient() as any,
     });
 
     this.queues.set(name, { name, queue, queueEvents });

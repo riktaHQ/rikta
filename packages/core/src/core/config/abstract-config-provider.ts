@@ -10,7 +10,8 @@ export class ConfigValidationException extends Error {
     public readonly errors: z.ZodError,
     providerName: string
   ) {
-    const errorMessages = errors.errors
+    // Zod v4 uses .issues instead of .errors
+    const errorMessages = errors.issues
       .map(err => `  - ${err.path.join('.')}: ${err.message}`)
       .join('\n');
     

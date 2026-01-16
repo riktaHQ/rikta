@@ -34,7 +34,9 @@ describe('Zod Installation', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.length).toBeGreaterThan(0);
-      expect(result.error.issues[0].code).toBe('invalid_string');
+      // Zod v4 uses 'invalid_format' for string format validations (email, uuid, etc.)
+      // while Zod v3 used 'invalid_string'
+      expect(result.error.issues[0].code).toBe('invalid_format');
     }
   });
 

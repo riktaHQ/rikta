@@ -1,30 +1,35 @@
-import type { ZodType, ZodTypeDef } from 'zod';
-import { zodToJsonSchema, type JsonSchema7Type } from 'zod-to-json-schema';
+import { z, type ZodType } from 'zod';
 import type { OpenApiSchemaObject } from '../types.js';
+
+/**
+ * JSON Schema type (simplified)
+ */
+type JsonSchema = Record<string, unknown>;
 
 /**
  * Type guard to check if a value is a Zod schema
  * Uses duck typing to detect Zod schemas without requiring the full library
+ * Compatible with both Zod v3 (_def) and Zod v4 (_zod)
  */
-export function isZodSchema(value: unknown): value is ZodType<unknown, ZodTypeDef, unknown> {
+export function isZodSchema(value: unknown): value is ZodType<unknown> {
   return (
     value !== null &&
     typeof value === 'object' &&
-    '_def' in value &&
+    ('_zod' in value || '_def' in value) &&
     'safeParse' in value &&
     typeof (value as { safeParse: unknown }).safeParse === 'function'
   );
 }
 
 /**
- * Convert JSON Schema 7 to OpenAPI 3.0 compatible schema
+ * Convert JSON Schema to OpenAPI 3.0 compatible schema
  * 
  * Main differences:
  * - OpenAPI uses `nullable: true` instead of `type: ['string', 'null']`
  * - OpenAPI 3.0 doesn't support `$schema`, `$id`, etc.
  * - Some JSON Schema features need to be simplified
  */
-function jsonSchemaToOpenApi(jsonSchema: JsonSchema7Type): OpenApiSchemaObject {
+function jsonSchemaToOpenApi(jsonSchema: JsonSchema | boolean): OpenApiSchemaObject {
   if (typeof jsonSchema === 'boolean') {
     return jsonSchema ? {} : { not: {} };
   }
@@ -72,16 +77,16 @@ function jsonSchemaToOpenApi(jsonSchema: JsonSchema7Type): OpenApiSchemaObject {
   if (schema.items) {
     if (Array.isArray(schema.items)) {
       // Tuple - OpenAPI 3.0 doesn't support tuple validation well
-      result.items = { oneOf: (schema.items as JsonSchema7Type[]).map(jsonSchemaToOpenApi) };
+      result.items = { oneOf: (schema.items as JsonSchema[]).map(jsonSchemaToOpenApi) };
     } else {
-      result.items = jsonSchemaToOpenApi(schema.items as JsonSchema7Type);
+      result.items = jsonSchemaToOpenApi(schema.items as JsonSchema);
     }
   }
 
   // Handle properties (for objects)
   if (schema.properties) {
     result.properties = {};
-    for (const [key, value] of Object.entries(schema.properties as Record<string, JsonSchema7Type>)) {
+    for (const [key, value] of Object.entries(schema.properties as Record<string, JsonSchema>)) {
       result.properties[key] = jsonSchemaToOpenApi(value);
     }
   }
@@ -91,24 +96,24 @@ function jsonSchemaToOpenApi(jsonSchema: JsonSchema7Type): OpenApiSchemaObject {
     if (typeof schema.additionalProperties === 'boolean') {
       result.additionalProperties = schema.additionalProperties;
     } else {
-      result.additionalProperties = jsonSchemaToOpenApi(schema.additionalProperties as JsonSchema7Type);
+      result.additionalProperties = jsonSchemaToOpenApi(schema.additionalProperties as JsonSchema);
     }
   }
 
   // Handle allOf, oneOf, anyOf
   if (schema.allOf) {
-    result.allOf = (schema.allOf as JsonSchema7Type[]).map(jsonSchemaToOpenApi);
+    result.allOf = (schema.allOf as JsonSchema[]).map(jsonSchemaToOpenApi);
   }
   if (schema.oneOf) {
-    result.oneOf = (schema.oneOf as JsonSchema7Type[]).map(jsonSchemaToOpenApi);
+    result.oneOf = (schema.oneOf as JsonSchema[]).map(jsonSchemaToOpenApi);
   }
   if (schema.anyOf) {
-    result.anyOf = (schema.anyOf as JsonSchema7Type[]).map(jsonSchemaToOpenApi);
+    result.anyOf = (schema.anyOf as JsonSchema[]).map(jsonSchemaToOpenApi);
   }
 
   // Handle not
   if (schema.not) {
-    result.not = jsonSchemaToOpenApi(schema.not as JsonSchema7Type);
+    result.not = jsonSchemaToOpenApi(schema.not as JsonSchema);
   }
 
   // Handle const (convert to enum with single value)
@@ -122,8 +127,8 @@ function jsonSchemaToOpenApi(jsonSchema: JsonSchema7Type): OpenApiSchemaObject {
 /**
  * Convert a Zod schema to an OpenAPI 3.0 schema object
  * 
- * Uses `zod-to-json-schema` for the heavy lifting, then converts
- * JSON Schema 7 to OpenAPI 3.0 compatible format.
+ * Uses Zod v4's native z.toJSONSchema() for the heavy lifting, then converts
+ * JSON Schema to OpenAPI 3.0 compatible format.
  * 
  * Supports all Zod types including:
  * - Primitives: string, number, boolean, bigint
@@ -159,16 +164,34 @@ function jsonSchemaToOpenApi(jsonSchema: JsonSchema7Type): OpenApiSchemaObject {
  * ```
  */
 export function zodToOpenApi(schema: ZodType): OpenApiSchemaObject {
-  // Convert to JSON Schema using zod-to-json-schema
-  const jsonSchema = zodToJsonSchema(schema, {
-    target: 'openApi3',
-    $refStrategy: 'none', // Inline all references
-  });
+  // Convert to JSON Schema using Zod v4 native method with OpenAPI 3.0 target
+  // and custom handling for unrepresentable types
+  const jsonSchema = z.toJSONSchema(schema, {
+    // Target OpenAPI 3.0 Schema Object format
+    target: 'openapi-3.0',
+    // Allow unrepresentable types to be converted to {} instead of throwing
+    unrepresentable: 'any',
+    // Custom override for types that need special handling
+    override: (ctx) => {
+      const def = ctx.zodSchema._zod?.def;
+      if (!def) return;
+      
+      // Handle z.date() - convert to string with date-time format
+      if (def.type === 'date') {
+        ctx.jsonSchema.type = 'string';
+        ctx.jsonSchema.format = 'date-time';
+      }
+      
+      // Handle z.bigint() - convert to integer with int64 format
+      if (def.type === 'bigint') {
+        ctx.jsonSchema.type = 'integer';
+        ctx.jsonSchema.format = 'int64';
+      }
+    },
+  }) as JsonSchema;
 
-  // Convert JSON Schema to OpenAPI format
-  // The result from zodToJsonSchema may include $schema and definitions
-  // which are not part of JsonSchema7Type but are compatible
-  return jsonSchemaToOpenApi(jsonSchema as JsonSchema7Type);
+  // Convert JSON Schema to OpenAPI format (handle remaining differences)
+  return jsonSchemaToOpenApi(jsonSchema);
 }
 
 /**
