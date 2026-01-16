@@ -105,7 +105,13 @@ async function mcpPluginImpl(
     const inputSchema = toMCPSchema(tool.inputSchema);
     
     const handler: UnsafeToolHandler = async (params, context) => {
-      const result = await tool.handler(params, context);
+      // Enrich context with request/reply if available
+      const enrichedContext = {
+        ...context,
+        request: (context as any)?.request,
+        reply: (context as any)?.reply,
+      };
+      const result = await tool.handler(params, enrichedContext);
       return result as CallToolResult;
     };
     
@@ -125,7 +131,13 @@ async function mcpPluginImpl(
     // Convert Zod schema to JSON Schema for MCP (uriSchema is not needed for resources)
     
     const handler: UnsafeResourceHandler = async (uri, context) => {
-      const result = await resource.handler(uri, context);
+      // Enrich context with request/reply if available
+      const enrichedContext = {
+        ...context,
+        request: (context as any)?.request,
+        reply: (context as any)?.reply,
+      };
+      const result = await resource.handler(uri, enrichedContext);
       return result as ReadResourceResult;
     };
     
@@ -144,7 +156,13 @@ async function mcpPluginImpl(
   const prompts = mcpRegistry.getPrompts();
   for (const prompt of prompts) {
     const handler: UnsafePromptHandler = async (name, args, context) => {
-      const result = await prompt.handler(args, context);
+      // Enrich context with request/reply if available
+      const enrichedContext = {
+        ...context,
+        request: (context as any)?.request,
+        reply: (context as any)?.reply,
+      };
+      const result = await prompt.handler(args, enrichedContext);
       return result as GetPromptResult;
     };
     

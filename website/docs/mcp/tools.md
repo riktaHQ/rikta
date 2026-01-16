@@ -118,6 +118,77 @@ async bulkDelete(params: { ids: string[]; force?: boolean }) {
 }
 ```
 
+## HTTP Context
+
+Tools can access the HTTP context to get request information, set headers, or access authentication:
+
+```typescript
+import { Injectable, z } from '@riktajs/core';
+import { MCPTool, MCPHandlerContext } from '@riktajs/mcp';
+
+@Injectable()
+class AuthenticatedToolsService {
+  @MCPTool({
+    name: 'get_user_files',
+    description: 'Get files for authenticated user',
+    inputSchema: z.object({
+      folder: z.string().optional(),
+    }),
+  })
+  async getUserFiles(
+    params: { folder?: string },
+    context?: MCPHandlerContext  // Optional context parameter
+  ) {
+    // Access authentication token from headers
+    const token = context?.request?.headers.authorization;
+    
+    if (!token) {
+      return {
+        content: [{ type: 'text', text: 'Authentication required' }],
+        isError: true,
+      };
+    }
+    
+    // Get user from token
+    const userId = this.extractUserId(token);
+    
+    // Log the request
+    context?.request?.log.info({ userId, folder: params.folder }, 'Fetching user files');
+    
+    // Set custom response header
+    if (context?.reply) {
+      context.reply.header('X-User-ID', userId);
+    }
+    
+    const files = await this.fetchUserFiles(userId, params.folder);
+    
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(files, null, 2),
+      }],
+    };
+  }
+}
+```
+
+### Available Context Properties
+
+- **`context.request`** - Fastify request object
+  - `headers` - HTTP headers (e.g., `authorization`)
+  - `query` - Query string parameters
+  - `ip` - Client IP address
+  - `log` - Request-scoped logger
+  - `user` - Authenticated user (if auth middleware is used)
+
+- **`context.reply`** - Fastify reply object
+  - `header(name, value)` - Set response headers
+  - `status(code)` - Set HTTP status code
+  - `log` - Reply-scoped logger
+
+- **`context.sessionId`** - SSE session ID (if SSE is enabled)
+- **`context.sendNotification(method, params)`** - Send SSE notifications
+
 ## Complete Examples
 
 ### File Operations

@@ -74,6 +74,74 @@ interface GetPromptResult {
 }
 ```
 
+## HTTP Context
+
+Prompts can access the HTTP context to customize prompt generation based on user preferences, locale, or other request properties:
+
+```typescript
+import { Injectable } from '@riktajs/core';
+import { MCPPrompt, MCPHandlerContext } from '@riktajs/mcp';
+
+@Injectable()
+class LocalizedPromptsService {
+  @MCPPrompt({
+    name: 'localized_greeting',
+    description: 'Generate a greeting prompt in user language',
+    arguments: [
+      { name: 'name', description: 'User name', required: true },
+    ],
+  })
+  async localizedGreeting(
+    args: { name: string },
+    context?: MCPHandlerContext  // Optional context parameter
+  ) {
+    // Get locale from request headers
+    const locale = context?.request?.headers['accept-language']?.split(',')[0] || 'en';
+    
+    // Get user preferences from custom header
+    const preferences = context?.request?.headers['x-user-preferences'];
+    
+    // Log prompt generation
+    context?.request?.log.info({ name: args.name, locale }, 'Generating localized greeting');
+    
+    const greeting = this.getGreetingForLocale(locale, args.name);
+    
+    return {
+      description: `Localized greeting for ${args.name} in ${locale}`,
+      messages: [{
+        role: 'user' as const,
+        content: {
+          type: 'text' as const,
+          text: greeting,
+        },
+      }],
+    };
+  }
+  
+  private getGreetingForLocale(locale: string, name: string): string {
+    const greetings: Record<string, string> = {
+      'en': `Hello ${name}! How can I help you today?`,
+      'it': `Ciao ${name}! Come posso aiutarti oggi?`,
+      'es': `¡Hola ${name}! ¿Cómo puedo ayudarte hoy?`,
+      'fr': `Bonjour ${name}! Comment puis-je vous aider aujourd'hui?`,
+    };
+    return greetings[locale.split('-')[0]] || greetings['en'];
+  }
+}
+```
+
+### Context Properties
+
+The context provides access to:
+
+- **`context.request`** - HTTP request information
+  - `headers` - Request headers (e.g., `accept-language`, custom headers)
+  - `query` - Query parameters
+  - `log` - Request logger
+
+- **`context.reply`** - HTTP response customization
+  - `header(name, value)` - Set custom headers
+
 ## Complete Examples
 
 ### Code Review Prompt

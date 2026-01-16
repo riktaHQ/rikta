@@ -18,23 +18,35 @@ rikta new <project-name> [options]
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--template` | `-t` | Project template to use | `default` |
+| `--template` | `-t` | Project template to use (`default`, `mcp-server`) | Interactive selection |
 | `--skip-install` | - | Skip npm install | `false` |
+
+### Available Templates
+
+| Template | Description |
+|----------|-------------|
+| `default` | Standard Rikta REST API with controllers and services |
+| `mcp-server` | Minimal MCP server with tool, resource, and prompt examples |
+
+When you run `rikta new` without specifying a template, the CLI will show an interactive prompt to select from available templates.
 
 ### Examples
 
 ```bash
-# Create project in current directory
+# Create with interactive template selection
 rikta new my-app
+
+# Create with default REST API template
+rikta new my-app --template default
+
+# Create an MCP server
+rikta new my-mcp-server --template mcp-server
 
 # Skip npm install
 rikta new my-app --skip-install
-
-# Use specific template
-rikta new my-app --template default
 ```
 
-### Generated Structure
+### Generated Structure (Default Template)
 
 ```
 my-app/
@@ -49,6 +61,26 @@ my-app/
 ├── .gitignore
 └── README.md
 ```
+
+### Generated Structure (MCP Server Template)
+
+```
+my-mcp/
+├── src/
+│   ├── mcp/
+│   │   ├── index.ts
+│   │   └── hello.service.ts
+│   └── index.ts
+├── package.json
+├── tsconfig.json
+├── .gitignore
+└── README.md
+```
+
+The MCP template includes examples of:
+- **@MCPTool** - A callable tool for AI assistants
+- **@MCPResource** - A data resource provider
+- **@MCPPrompt** - A prompt template generator
 
 ## dev
 

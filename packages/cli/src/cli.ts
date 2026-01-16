@@ -24,7 +24,7 @@ export function setupCLI(): Command {
     .command('new <projectName>')
     .alias('create')
     .description('Create a new Rikta project')
-    .option('-t, --template <template>', 'Project template to use', 'default')
+    .option('-t, --template <template>', 'Project template to use (default, mcp-server). If not specified, interactive selection will be shown.')
     .option('--skip-install', 'Skip npm install after project creation', false)
     .action(async (projectName: string, options) => {
       const verbose = program.opts().verbose as boolean;

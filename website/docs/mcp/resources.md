@@ -76,6 +76,77 @@ Resources use URI patterns to identify them. The pattern can include query param
 // Access via: user://profile?id=123
 ```
 
+## HTTP Context
+
+Resources can access the HTTP context to customize responses based on headers, authentication, or other request properties:
+
+```typescript
+import { Injectable } from '@riktajs/core';
+import { MCPResource, MCPHandlerContext } from '@riktajs/mcp';
+
+@Injectable()
+class ProtectedResourceService {
+  @MCPResource({
+    uriPattern: 'secure://data',
+    name: 'Secure Data',
+    description: 'Access protected data resources',
+    mimeType: 'application/json',
+  })
+  async getSecureData(
+    uri: string,
+    context?: MCPHandlerContext  // Optional context parameter
+  ) {
+    // Check authentication
+    const token = context?.request?.headers.authorization;
+    
+    if (!token) {
+      return {
+        contents: [{
+          uri,
+          text: JSON.stringify({ error: 'Unauthorized' }),
+          mimeType: 'application/json',
+        }],
+      };
+    }
+    
+    // Parse URI parameters
+    const url = new URL(uri);
+    const dataId = url.searchParams.get('id');
+    
+    // Log access
+    context?.request?.log.info({ dataId, token: token.substring(0, 10) }, 'Accessing secure data');
+    
+    // Set cache headers
+    if (context?.reply) {
+      context.reply.header('Cache-Control', 'private, max-age=300');
+      context.reply.header('X-Content-Version', '1.0');
+    }
+    
+    const data = await this.fetchSecureData(dataId, token);
+    
+    return {
+      contents: [{
+        uri,
+        text: JSON.stringify(data),
+        mimeType: 'application/json',
+      }],
+    };
+  }
+}
+```
+
+### Context Properties
+
+- **`context.request`** - Access HTTP request details
+  - `headers` - Read request headers
+  - `query` - Get query parameters
+  - `ip` - Client IP address
+  - `log` - Logger instance
+
+- **`context.reply`** - Customize HTTP response
+  - `header(name, value)` - Set response headers (e.g., `Cache-Control`)
+  - `status(code)` - Set HTTP status
+
 ## Complete Examples
 
 ### File Reader

@@ -13,7 +13,7 @@ export interface BaseCommandOptions {
  * Options for the 'new' command
  */
 export interface NewCommandOptions extends BaseCommandOptions {
-  template: string;
+  template?: string;
   skipInstall: boolean;
 }
 

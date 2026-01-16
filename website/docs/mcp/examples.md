@@ -510,6 +510,242 @@ async function bootstrap() {
 bootstrap();
 ```
 
+## Authenticated MCP Server with HTTP Context
+
+An MCP server demonstrating authentication and HTTP context usage:
+
+```typescript
+import { Rikta, Injectable, z } from '@riktajs/core';
+import { registerMCPServer, MCPTool, MCPResource, MCPHandlerContext } from '@riktajs/mcp';
+
+@Injectable()
+class AuthenticatedMCPService {
+  // Mock user database
+  private users = new Map([
+    ['token123', { id: '1', name: 'Alice', role: 'admin' }],
+    ['token456', { id: '2', name: 'Bob', role: 'user' }],
+  ]);
+
+  /**
+   * Extract and validate user from Authorization header
+   */
+  private getUserFromContext(context?: MCPHandlerContext) {
+    const authHeader = context?.request?.headers.authorization;
+    
+    if (!authHeader) {
+      return null;
+    }
+    
+    // Simple token extraction (Bearer token)
+    const token = authHeader.replace('Bearer ', '');
+    return this.users.get(token) || null;
+  }
+
+  @MCPTool({
+    name: 'get_profile',
+    description: 'Get authenticated user profile',
+  })
+  async getProfile(params: Record<string, never>, context?: MCPHandlerContext) {
+    const user = this.getUserFromContext(context);
+    
+    if (!user) {
+      // Log unauthorized attempt
+      context?.request?.log.warn('Unauthorized profile access attempt');
+      
+      return {
+        content: [{
+          type: 'text' as const,
+          text: 'Error: Authentication required. Provide Authorization header.',
+        }],
+        isError: true,
+      };
+    }
+    
+    // Log successful access
+    context?.request?.log.info({ userId: user.id }, 'Profile accessed');
+    
+    // Set custom response header
+    if (context?.reply) {
+      context.reply.header('X-User-ID', user.id);
+      context.reply.header('X-Request-ID', crypto.randomUUID());
+    }
+    
+    return {
+      content: [{
+        type: 'text' as const,
+        text: JSON.stringify({
+          id: user.id,
+          name: user.name,
+          role: user.role,
+        }, null, 2),
+      }],
+    };
+  }
+
+  @MCPTool({
+    name: 'admin_action',
+    description: 'Perform admin-only action',
+    inputSchema: z.object({
+      action: z.enum(['reset', 'backup', 'export']),
+    }),
+  })
+  async adminAction(params: { action: string }, context?: MCPHandlerContext) {
+    const user = this.getUserFromContext(context);
+    
+    // Check authentication
+    if (!user) {
+      return {
+        content: [{ type: 'text' as const, text: 'Error: Authentication required' }],
+        isError: true,
+      };
+    }
+    
+    // Check authorization
+    if (user.role !== 'admin') {
+      context?.request?.log.warn(
+        { userId: user.id, action: params.action },
+        'Unauthorized admin action attempt'
+      );
+      
+      return {
+        content: [{ type: 'text' as const, text: 'Error: Admin privileges required' }],
+        isError: true,
+      };
+    }
+    
+    // Get client IP for audit log
+    const clientIp = context?.request?.ip;
+    
+    context?.request?.log.info(
+      { userId: user.id, action: params.action, ip: clientIp },
+      'Admin action executed'
+    );
+    
+    return {
+      content: [{
+        type: 'text' as const,
+        text: `Admin action "${params.action}" executed successfully by ${user.name}`,
+      }],
+    };
+  }
+
+  @MCPResource({
+    uriPattern: 'user://data',
+    name: 'User Data',
+    description: 'Access user-specific data. Requires authentication.',
+    mimeType: 'application/json',
+  })
+  async getUserData(uri: string, context?: MCPHandlerContext) {
+    const user = this.getUserFromContext(context);
+    
+    if (!user) {
+      return {
+        contents: [{
+          uri,
+          text: JSON.stringify({ error: 'Authentication required' }),
+          mimeType: 'application/json',
+        }],
+      };
+    }
+    
+    // Parse query parameters from URI
+    const url = new URL(uri);
+    const category = url.searchParams.get('category') || 'all';
+    
+    // Set caching headers for authenticated content
+    if (context?.reply) {
+      context.reply.header('Cache-Control', 'private, max-age=300');
+      context.reply.header('X-User-ID', user.id);
+    }
+    
+    // Mock user data
+    const userData = {
+      userId: user.id,
+      category,
+      data: {
+        preferences: { theme: 'dark', language: 'en' },
+        stats: { loginCount: 42, lastActive: new Date().toISOString() },
+      },
+    };
+    
+    context?.request?.log.info(
+      { userId: user.id, category },
+      'User data accessed'
+    );
+    
+    return {
+      contents: [{
+        uri,
+        text: JSON.stringify(userData, null, 2),
+        mimeType: 'application/json',
+      }],
+    };
+  }
+
+  @MCPTool({
+    name: 'log_request',
+    description: 'Log request details (demonstration)',
+  })
+  async logRequest(params: Record<string, never>, context?: MCPHandlerContext) {
+    if (!context?.request) {
+      return {
+        content: [{ type: 'text' as const, text: 'No request context available' }],
+      };
+    }
+    
+    const requestInfo = {
+      method: context.request.method,
+      url: context.request.url,
+      ip: context.request.ip,
+      userAgent: context.request.headers['user-agent'],
+      contentType: context.request.headers['content-type'],
+      sessionId: context.sessionId,
+    };
+    
+    // Use request-scoped logger
+    context.request.log.info(requestInfo, 'Request details logged');
+    
+    return {
+      content: [{
+        type: 'text' as const,
+        text: `Request Details:\n${JSON.stringify(requestInfo, null, 2)}`,
+      }],
+    };
+  }
+}
+
+async function bootstrap() {
+  const app = await Rikta.create({ port: 3000 });
+
+  await registerMCPServer(app, {
+    serverInfo: { name: 'authenticated-mcp-server', version: '1.0.0' },
+    instructions: `
+      Authenticated MCP server demonstrating HTTP context usage.
+      
+      Authentication:
+      - Include "Authorization: Bearer <token>" header
+      - Valid tokens: token123 (admin), token456 (user)
+      
+      Features:
+      - User authentication and authorization
+      - Request logging with client IP
+      - Custom response headers
+      - Session tracking
+    `,
+    enableSSE: true,
+  });
+
+  await app.listen();
+  console.log('🤖 Authenticated MCP Server: http://localhost:3000/mcp');
+  console.log('\nTest with:');
+  console.log('curl -H "Authorization: Bearer token123" -X POST http://localhost:3000/mcp \\');
+  console.log('  -H "Content-Type: application/json" \\');
+  console.log('  -d \'{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_profile","arguments":{}}}\'');
+}
+
+bootstrap();
+```
+
 ## Multi-Service Application
 
 Combining multiple MCP services in one application:

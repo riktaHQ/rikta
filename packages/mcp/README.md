@@ -211,6 +211,129 @@ const filesSchema = z.array(z.object({
 }));
 ```
 
+## HTTP Context
+
+All MCP handlers (tools, resources, prompts) receive an optional `context` parameter that provides access to the HTTP request and reply objects from Fastify:
+
+```typescript
+import { Injectable } from '@riktajs/core';
+import { MCPTool, MCPHandlerContext, z } from '@riktajs/mcp';
+
+@Injectable()
+class AuthenticatedService {
+  @MCPTool({
+    name: 'get_user_data',
+    description: 'Get data for the authenticated user',
+    inputSchema: z.object({
+      includePrivate: z.boolean().optional(),
+    }),
+  })
+  async getUserData(
+    params: { includePrivate?: boolean },
+    context?: MCPHandlerContext
+  ) {
+    // Access HTTP headers
+    const authToken = context?.request?.headers.authorization;
+    
+    // Access query parameters
+    const sessionId = context?.request?.query.sessionId;
+    
+    // Set custom response headers
+    if (context?.reply) {
+      context.reply.header('X-Request-ID', generateId());
+    }
+    
+    // Access request IP
+    const clientIp = context?.request?.ip;
+    
+    // Log request details
+    context?.request?.log.info('Processing user data request');
+    
+    return {
+      content: [{
+        type: 'text',
+        text: `User data for session ${sessionId}`,
+      }],
+    };
+  }
+}
+```
+
+### Context Properties
+
+The `MCPHandlerContext` interface provides:
+
+- `request?: FastifyRequest` - The Fastify request object
+  - `headers` - HTTP headers
+  - `query` - Query parameters
+  - `body` - Request body
+  - `params` - Route parameters
+  - `ip` - Client IP address
+  - `log` - Request logger
+  - `user` - Authenticated user (if using auth)
+
+- `reply?: FastifyReply` - The Fastify reply object
+  - `header()` - Set response headers
+  - `status()` - Set status code
+  - `log` - Reply logger
+
+- `sessionId?: string` - SSE session ID (when using SSE)
+- `sendNotification?()` - Send SSE notifications
+
+### Common Use Cases
+
+#### Authentication
+
+```typescript
+@MCPTool({ name: 'protected_action', description: 'Requires auth' })
+async protectedAction(params: any, context?: MCPHandlerContext) {
+  const token = context?.request?.headers.authorization;
+  
+  if (!token) {
+    return {
+      content: [{ type: 'text', text: 'Unauthorized' }],
+      isError: true,
+    };
+  }
+  
+  // Verify token and proceed...
+}
+```
+
+#### Custom Headers
+
+```typescript
+@MCPResource({ uriPattern: 'data://export', name: 'Export', description: 'Export data' })
+async exportData(uri: string, context?: MCPHandlerContext) {
+  const data = await this.getData();
+  
+  // Set download headers
+  if (context?.reply) {
+    context.reply.header('Content-Disposition', 'attachment; filename="data.json"');
+    context.reply.header('Content-Type', 'application/json');
+  }
+  
+  return {
+    contents: [{ uri, text: JSON.stringify(data), mimeType: 'application/json' }],
+  };
+}
+```
+
+#### Request Logging
+
+```typescript
+@MCPTool({ name: 'analyze', description: 'Analyze data' })
+async analyze(params: any, context?: MCPHandlerContext) {
+  const logger = context?.request?.log;
+  
+  logger?.info({ params }, 'Starting analysis');
+  const result = await this.performAnalysis(params);
+  logger?.info({ result }, 'Analysis complete');
+  
+  return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+}
+```
+
 ## Configuration
 
 ### Basic Configuration

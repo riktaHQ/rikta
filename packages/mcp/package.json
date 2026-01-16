@@ -1,6 +1,6 @@
 {
   "name": "@riktajs/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Model Context Protocol (MCP) integration for Rikta Framework - Connect AI assistants to your backend",
   "type": "module",
   "main": "dist/index.js",
@@ -55,7 +55,7 @@
     "zod": "^3.25.76"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "repository": {
     "type": "git",

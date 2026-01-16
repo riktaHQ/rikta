@@ -62,17 +62,30 @@ rikta new my-api
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--template <template>` | `-t` | Project template to use | `default` |
+| `--template <template>` | `-t` | Project template to use (`default`, `mcp-server`) | Interactive selection |
 | `--skip-install` | | Skip npm install after creation | `false` |
 | `--verbose` | `-V` | Enable verbose output | `false` |
 
 **Aliases:** `create`
 
+**Available Templates:**
+
+| Template | Description |
+|----------|-------------|
+| `default` | Standard Rikta REST API with controllers and services |
+| `mcp-server` | Minimal MCP server with tool, resource, and prompt examples |
+
 **Examples:**
 
 ```bash
-# Create and start immediately
-rikta new my-api && cd my-api && rikta dev
+# Create with interactive template selection
+rikta new my-api
+
+# Create with default REST API template
+rikta new my-api --template default
+
+# Create an MCP server
+rikta new my-mcp-server --template mcp-server
 
 # Skip npm install (faster for testing)
 rikta new my-api --skip-install
@@ -184,23 +197,18 @@ These options work with all commands:
 
 ## 📁 Generated Project Structure
 
-When you run `rikta new my-app`, the following structure is created:
+### Default Template
 
-```
-my-app/
-├── src/
-│   ├── controllers/
-│   │   └── app.controller.ts    # Example REST controller
-│   ├── services/
-│   │   └── greeting.service.ts  # Example injectable service
-│   └── index.ts                 # Application entry point
-├── package.json                 # Dependencies and scripts
-├── tsconfig.json                # TypeScript configuration
-├── .gitignore                   # Git ignore rules
-├── .editorconfig                # Editor configuration
-├── .env.example                 # Environment variables template
-└── README.md                    # Project documentation
-```
+When you run `rikta new my-app` or `rikta new my-app --template default`, a basic Rikta app is created.
+
+### MCP Server Template
+
+When you run `rikta new my-mcp --template mcp-server`, a basic MCP Server is created
+
+The MCP template includes:
+- **@MCPTool** `say_hello` - A tool that greets users
+- **@MCPResource** `hello://greeting` - A resource providing greeting data
+- **@MCPPrompt** `hello_prompt` - A prompt template for generating greetings
 
 ### Generated Files
 

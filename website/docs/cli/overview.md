@@ -40,9 +40,22 @@ That's it! Your new Rikta application is running at `http://localhost:3000`.
 | `dev` | Start in development mode with hot reload |
 | `build` | Build the project for production |
 
+## Project Templates
+
+The CLI provides multiple templates for different use cases:
+
+| Template | Description |
+|----------|-------------|
+| `default` | Standard REST API with controllers and services |
+| `mcp-server` | MCP server for AI assistant integration |
+
+When creating a new project without specifying a template, you'll see an interactive prompt to choose one.
+
 ## Project Structure
 
-When you create a new project, you get this structure:
+### Default Template
+
+When you create a new project with the default template:
 
 ```
 my-app/
@@ -51,6 +64,22 @@ my-app/
 │   │   └── app.controller.ts
 │   ├── services/
 │   │   └── greeting.service.ts
+│   └── index.ts
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+### MCP Server Template
+
+When you create a new MCP server:
+
+```
+my-mcp/
+├── src/
+│   ├── mcp/
+│   │   ├── index.ts
+│   │   └── hello.service.ts
 │   └── index.ts
 ├── package.json
 ├── tsconfig.json

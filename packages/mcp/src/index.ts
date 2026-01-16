@@ -84,6 +84,3 @@ export { zodToMCPSchema, toMCPSchema, isZodSchema } from './utils/index.js';
 
 // Export plugin
 export { registerMCPServer, createMCPConfig, mcpServerPlugin } from './plugin/index.js';
-
-// Re-export zod for convenience
-export { z } from 'zod';

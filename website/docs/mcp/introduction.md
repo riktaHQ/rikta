@@ -19,6 +19,7 @@ The Model Context Protocol is an open standard that allows AI applications to se
 - 🤖 **Decorator-based API** - Define MCP handlers with `@MCPTool`, `@MCPResource`, `@MCPPrompt`
 - 🔍 **Auto-discovery** - Automatically discovers MCP handlers from `@Injectable` classes
 - 📝 **Zod Integration** - Full Zod support for input schema validation
+- 🌐 **HTTP Context Access** - Access Fastify request/reply in handlers for authentication, headers, logging
 - 📡 **SSE Support** - Server-Sent Events for real-time notifications
 - 🔄 **Horizontal Scaling** - Redis support for multi-instance deployments
 - 🔒 **Type Safe** - Complete TypeScript definitions

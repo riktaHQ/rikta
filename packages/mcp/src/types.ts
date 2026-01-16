@@ -4,17 +4,14 @@
  * TypeScript interfaces and types for MCP integration.
  */
 
-import type { ZodType, ZodTypeDef } from 'zod';
-import type { FastifyInstance } from 'fastify';
-
 // ============================================================================
 // Zod Schema Type
 // ============================================================================
 
 /**
- * Generic Zod schema type
+ * Generic Zod schema type - accepts any Zod schema
  */
-export type ZodSchema = ZodType<unknown, ZodTypeDef, unknown>;
+export type ZodSchema = any;
 
 // ============================================================================
 // MCP Tool Types
@@ -247,6 +244,18 @@ export interface MCPHandlerContext {
    * Send a notification to the current session
    */
   sendNotification?: (method: string, params: unknown) => void;
+
+  /**
+   * Fastify request object (when available)
+   * Provides access to HTTP request details like headers, params, query, etc.
+   */
+  request?: any;
+
+  /**
+   * Fastify reply object (when available)
+   * Provides access to HTTP response methods and properties
+   */
+  reply?: any;
 }
 
 // ============================================================================

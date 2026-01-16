@@ -2,12 +2,58 @@ import path from 'path';
 import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
 import { execa } from 'execa';
+import { select } from '@inquirer/prompts';
 import { createLogger } from '../utils/logger.js';
 import { validateProjectName } from '../utils/project.js';
 import type { NewCommandOptions } from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/**
+ * Available project templates
+ */
+const TEMPLATES = [
+  {
+    name: 'default',
+    value: 'default',
+    description: 'Standard Rikta REST API with controllers and services',
+  },
+  {
+    name: 'mcp-server',
+    value: 'mcp-server',
+    description: 'Minimal MCP server with tool, resource, and prompt examples',
+  },
+];
+
+/**
+ * Prompt user to select a template interactively
+ */
+async function selectTemplate(): Promise<string> {
+  return await select({
+    message: 'Select a project template:',
+    choices: TEMPLATES,
+  });
+}
+
+/**
+ * Get template-specific getting started messages
+ */
+function getGettingStartedMessages(template: string): string[] {
+  if (template === 'mcp-server') {
+    return [
+      '1. Your MCP server exposes tools, resources, and prompts for AI assistants',
+      '2. The MCP endpoint will be available at http://localhost:3000/mcp',
+      '3. Connect Claude Desktop or other MCP clients to interact with your server',
+    ];
+  }
+
+  return [
+    '1. You can configure routes, controllers, and services',
+    '2. Hot reload is enabled by default in development mode',
+    '3. Dependency injection is built-in for clean architecture',
+  ];
+}
 
 export async function handleNew(
   projectName: string,
@@ -19,6 +65,26 @@ export async function handleNew(
   logger.title();
   logger.tagline('Making TypeScript services simple (and fast) again');
   logger.newLine();
+
+  // Interactive template selection if not provided via --template
+  let template = options.template;
+  if (!template || template === 'default') {
+    // Check if user explicitly passed --template default or if it's the CLI default
+    const isExplicitDefault = process.argv.includes('--template') || process.argv.includes('-t');
+    if (!isExplicitDefault && !template) {
+      try {
+        template = await selectTemplate();
+        logger.debug(`Selected template: ${template}`);
+      } catch (error) {
+        // User cancelled selection (Ctrl+C)
+        logger.newLine();
+        logger.info('Template selection cancelled.');
+        process.exit(0);
+      }
+    } else {
+      template = template || 'default';
+    }
+  }
 
   logger.step(1, 4, 'Validating project name...');
   logger.debug(`Project name: ${projectName}`);
@@ -40,12 +106,12 @@ export async function handleNew(
   }
   logger.success('Target directory is available');
 
-  logger.step(3, 4, 'Creating project from template...');
-  const templateDir = path.resolve(__dirname, '../../templates', options.template);
+  logger.step(3, 4, `Creating project from template '${template}'...`);
+  const templateDir = path.resolve(__dirname, '../../templates', template);
   logger.debug(`Template directory: ${templateDir}`);
 
   if (!await fs.pathExists(templateDir)) {
-    logger.error(`Template "${options.template}" not found`);
+    logger.error(`Template "${template}" not found. Available templates: ${TEMPLATES.map(t => t.value).join(', ')}`);
     process.exit(1);
   }
 
@@ -92,12 +158,13 @@ export async function handleNew(
   }
 
   logger.newLine();
-  logger.success(`Project "${projectName}" created successfully!`);
+  logger.success(`Project "${projectName}" created successfully with '${template}' template!`);
   logger.newLine();
   logger.info('Getting started with Rikta');
-  logger.info('1. You can configure routes, controllers, and services');
-  logger.info('2. Hot reload is enabled by default in development mode');
-  logger.info('3. Dependency injection is built-in for clean architecture');
+  const gettingStartedMessages = getGettingStartedMessages(template);
+  for (const message of gettingStartedMessages) {
+    logger.info(message);
+  }
   logger.newLine();
   logger.info('Next steps:');
   logger.info(`  cd ${projectName}`);
