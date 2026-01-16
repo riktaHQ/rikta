@@ -1,7 +1,7 @@
 {
-  "name": "my-rikta-app",
+  "name": "my-rikta-mcp-server",
   "version": "0.1.0",
-  "description": "A Rikta application",
+  "description": "A minimal MCP server built with Rikta",
   "main": "dist/index.js",
   "scripts": {
     "dev": "rikta dev",
@@ -10,14 +10,16 @@
   },
   "keywords": [
     "rikta",
-    "backend",
-    "typescript",
-    "fastify"
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@riktajs/core": "^0.4.6"
+    "@riktajs/core": "^0.4.6",
+    "@riktajs/mcp": "^0.2.0"
   },
   "devDependencies": {
     "@riktajs/cli": "^0.2.0",
