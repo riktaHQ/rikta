@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'techniques/validation',
         'techniques/error-handling',
         'techniques/guards',
+        'techniques/middleware',
         'techniques/logging',
         'techniques/queues'
       ],
