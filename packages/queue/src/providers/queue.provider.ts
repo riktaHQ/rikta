@@ -111,11 +111,12 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
       // Test connection
       await this.testConnection();
 
-      // Discover and register processors
-      await this.discoverAndRegisterProcessors();
-
-      // Register in container
+      // Register QueueProvider and QueueService in container FIRST
+      // This allows processors to inject QueueService via @Autowired
       this.registerInContainer();
+
+      // Discover and register processors (they can now inject QueueService)
+      await this.discoverAndRegisterProcessors();
 
       this.initialized = true;
       console.log(`✅ Queue: Initialized ${this.queues.size} queue(s), ${this.workers.size} worker(s)`);
@@ -297,6 +298,9 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
       processorClass,
     });
 
+    // Register worker in DI container
+    this.registerWorkerInContainer(queueName, worker);
+
     console.log(`  📦 Registered processor for queue: ${queueName} (${jobHandlers.length} handlers)`);
   }
 
@@ -311,6 +315,9 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
     });
 
     this.queues.set(name, { name, queue, queueEvents });
+
+    // Register queue in DI container
+    this.registerQueueInContainer(name, queue);
   }
 
   private attachWorkerEvents(
@@ -396,6 +403,11 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
     }
   }
 
+  /**
+   * Register QueueProvider and QueueService in the DI container.
+   * Called early so processors can inject QueueService via @Autowired.
+   * Individual queues and workers are registered as they are created.
+   */
   private registerInContainer(): void {
     try {
       const container = Container.getInstance();
@@ -403,24 +415,42 @@ export class QueueProvider implements OnProviderInit, OnProviderDestroy {
       // Register provider
       container.registerValue(QUEUE_PROVIDER, this);
 
-      // Register queues
-      for (const [name, { queue }] of this.queues) {
-        container.registerValue(getQueueToken(name), queue);
-      }
-
-      // Register workers
-      for (const [name, { worker }] of this.workers) {
-        container.registerValue(getWorkerToken(name), worker);
-      }
-
       // Create and register QueueService
+      // Note: QueueService accesses queues via provider.getQueue(),
+      // so it works even if queues are registered later
       const queueService = new QueueService(this);
       container.registerValue(QUEUE_SERVICE, queueService);
       
-      console.log('  ✅ QueueService registered in container');
+      console.log('  ✅ QueueProvider and QueueService registered in container');
     } catch (error) {
       // Container not available, skip registration
       console.warn('  ⚠️ Could not register in container:', (error as Error).message);
+    }
+  }
+
+  /**
+   * Register a queue and its worker in the DI container.
+   * Called when a queue is created during processor registration.
+   */
+  private registerQueueInContainer(name: string, queue: Queue): void {
+    try {
+      const container = Container.getInstance();
+      container.registerValue(getQueueToken(name), queue);
+    } catch {
+      // Ignore errors - container may not be available
+    }
+  }
+
+  /**
+   * Register a worker in the DI container.
+   * Called when a worker is created during processor registration.
+   */
+  private registerWorkerInContainer(name: string, worker: Worker): void {
+    try {
+      const container = Container.getInstance();
+      container.registerValue(getWorkerToken(name), worker);
+    } catch {
+      // Ignore errors - container may not be available
     }
   }
 
