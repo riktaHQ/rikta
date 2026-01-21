@@ -15,6 +15,8 @@ import { ForbiddenException } from '../exceptions/exceptions';
 import { ExecutionContextImpl } from '../guards/execution-context';
 import { getGuardsMetadata, GuardClass } from '../guards/use-guards.decorator';
 import type { CanActivate } from '../guards/can-activate.interface';
+import { getMiddlewareMetadata, MiddlewareClass } from '../middleware/use-middleware.decorator';
+import type { RiktaMiddleware } from '../middleware/rikta-middleware.interface';
 
 /**
  * Compiled parameter extractor function type
@@ -53,6 +55,9 @@ interface CompiledParamResolver {
 export class Router {
   /** Cache for guard instances (singleton per guard class) */
   private readonly guardCache = new Map<GuardClass, CanActivate>();
+  
+  /** Cache for middleware instances (singleton per middleware class) */
+  private readonly middlewareCache = new Map<MiddlewareClass, RiktaMiddleware>();
   
   constructor(
     private readonly server: FastifyInstance,
@@ -117,6 +122,9 @@ export class Router {
     // Get guards for this route (controller-level + method-level)
     const guards = getGuardsMetadata(controllerClass, route.handlerName);
 
+    // Get middleware for this route (controller-level + method-level)
+    const middleware = getMiddlewareMetadata(controllerClass, route.handlerName);
+
     // ============================================
     // OPTIMIZATION: Pre-compile parameter resolvers
     // ============================================
@@ -131,50 +139,39 @@ export class Router {
     const hasGuards = guardInstances.length > 0;
 
     // ============================================
-    // OPTIMIZATION: Create specialized handlers
+    // OPTIMIZATION: Pre-resolve middleware instances
     // ============================================
-    let routeHandler: CompiledHandler;
+    const middlewareInstances = this.resolveMiddlewareInstances(middleware);
+    const hasMiddleware = middlewareInstances.length > 0;
 
-    if (!hasGuards && !hasParams && !statusCode) {
-      // FAST PATH: No guards, no params, no custom status
-      routeHandler = async (_request, _reply) => {
-        return handler.call(controllerInstance);
-      };
-    } else if (!hasGuards && !hasParams) {
-      // Fast path: Just status code
-      routeHandler = async (_request, reply) => {
-        const result = await handler.call(controllerInstance);
-        if (statusCode) reply.status(statusCode);
-        return result;
-      };
-    } else if (!hasGuards) {
-      // Medium path: Params but no guards
-      routeHandler = async (request, reply) => {
-        const args = this.resolveParamsOptimized(compiledResolvers, maxParamIndex, request, reply);
-        const result = await handler.apply(controllerInstance, args);
-        if (statusCode) reply.status(statusCode);
-        return result;
-      };
-    } else {
-      // Full path: Guards + params
-      // Pre-create execution context factory for this route
-      const createContext = (req: FastifyRequest, rep: FastifyReply) => 
-        new ExecutionContextImpl(req, rep, controllerClass, route.handlerName);
+    // Pre-create execution context factory (only if guards are present)
+    const createContext = hasGuards
+      ? (req: FastifyRequest, rep: FastifyReply) => 
+          new ExecutionContextImpl(req, rep, controllerClass, route.handlerName)
+      : null;
 
-      routeHandler = async (request, reply) => {
-        // Execute guards with cached instances
+    // Unified route handler
+    const routeHandler: CompiledHandler = async (request, reply) => {
+      // 1. Execute guards (if any)
+      if (createContext) {
         await this.executeGuardsOptimized(guardInstances, createContext(request, reply));
-        
-        // Resolve params if needed
-        const args = hasParams 
-          ? this.resolveParamsOptimized(compiledResolvers, maxParamIndex, request, reply)
-          : [];
-        
-        const result = await handler.apply(controllerInstance, args);
-        if (statusCode) reply.status(statusCode);
-        return result;
-      };
-    }
+      }
+      
+      // 2. Execute middleware (if any)
+      if (hasMiddleware) {
+        await this.executeMiddlewareChain(middlewareInstances, request, reply);
+      }
+      
+      // 3. Resolve params and execute handler
+      const result = hasParams
+        ? await handler.apply(controllerInstance, this.resolveParamsOptimized(compiledResolvers, maxParamIndex, request, reply))
+        : await handler.call(controllerInstance);
+      
+      // 4. Set status code if specified
+      if (statusCode) reply.status(statusCode);
+      
+      return result;
+    };
 
     // Register with Fastify
     const method = route.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
@@ -337,6 +334,61 @@ export class Router {
         );
       }
     }
+  }
+
+  /**
+   * OPTIMIZATION: Pre-resolve middleware instances at route registration
+   */
+  private resolveMiddlewareInstances(middleware: MiddlewareClass[]): RiktaMiddleware[] {
+    return middleware.map(MiddlewareClass => {
+      // Check cache first
+      let instance = this.middlewareCache.get(MiddlewareClass);
+      if (instance) return instance;
+
+      // Resolve from container
+      try {
+        instance = this.container.resolve(MiddlewareClass) as RiktaMiddleware;
+      } catch (error) {
+        throw new Error(
+          `Failed to resolve middleware ${MiddlewareClass.name}. ` +
+          `Make sure it is decorated with @Injectable(). ` +
+          `Original error: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+
+      // Verify interface
+      if (typeof instance.use !== 'function') {
+        throw new Error(
+          `${MiddlewareClass.name} does not implement RiktaMiddleware interface. ` +
+          `The middleware must have a use(req, res, next) method.`
+        );
+      }
+
+      // Cache for future use
+      this.middlewareCache.set(MiddlewareClass, instance);
+      return instance;
+    });
+  }
+
+  /**
+   * Execute middleware chain in order
+   * Each middleware must call next() to continue
+   */
+  private async executeMiddlewareChain(
+    middlewareInstances: RiktaMiddleware[],
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<void> {
+    let index = 0;
+
+    const next = async (): Promise<void> => {
+      if (index < middlewareInstances.length) {
+        const middleware = middlewareInstances[index++];
+        await middleware.use(request, reply, next);
+      }
+    };
+
+    await next();
   }
 
   /**

@@ -1,14 +1,19 @@
-import {Controller, Get, Autowired, Req, RouteContext} from '@riktajs/core';
+import {Controller, Get, Autowired, UseMiddleware} from '@riktajs/core';
 import {ApiTags, ApiOperation, ApiResponse} from '@riktajs/swagger';
 import {HealthService, HealthStatus} from '../services/health.service';
 import {APP_CONFIG} from '../config/app.config';
 import {AppConfigProvider} from "../config/app-config.provider";
+import {LoggerMiddleware, ResponseTimeMiddleware} from '../middleware';
 
 /**
  * Root Application Controller
+ * 
+ * Demonstrates the use of @UseMiddleware decorator
+ * to apply middleware to all routes in the controller.
  */
 @ApiTags('Application')
 @Controller()
+@UseMiddleware(LoggerMiddleware, ResponseTimeMiddleware)
 export class AppController {
   @Autowired()
   private healthService!: HealthService;

@@ -10,6 +10,7 @@ import {
   HttpCode,
   Autowired,
   NotFoundException,
+  UseMiddleware,
 } from '@riktajs/core';
 import {
   ApiTags,
@@ -30,6 +31,7 @@ import {
   UpdateUserDto,
   PaginationQuery,
 } from '../services/user.service';
+import { LoggerMiddleware, ResponseTimeMiddleware } from '../middleware';
 
 // Response schema for array of users
 const UserArraySchema = z.array(z.object({
@@ -53,9 +55,12 @@ const UserSchema = z.object({
  * Demonstrates Zod validation with automatic type inference.
  * All request bodies and query parameters are validated before
  * reaching the handler methods.
+ * 
+ * Also demonstrates @UseMiddleware for request logging and timing.
  */
 @ApiTags('Users')
 @Controller('/users')
+@UseMiddleware(LoggerMiddleware, ResponseTimeMiddleware)
 export class UserController {
   
   @Autowired()
