@@ -2,18 +2,34 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { Constructor } from '../types';
 
 /**
+ * HTTP argument host interface
+ * Provides access to HTTP-specific request/response objects
+ */
+export interface HttpArgumentsHost {
+  /**
+   * Get the Fastify request object
+   */
+  getRequest<T = FastifyRequest>(): T;
+  
+  /**
+   * Get the Fastify reply object
+   */
+  getResponse<T = FastifyReply>(): T;
+}
+
+/**
  * ExecutionContext Interface
  * 
  * Provides access to the current request context, including
  * request/reply objects and handler metadata. Used by guards
- * to make authorization decisions.
+ * and interceptors to access request details.
  * 
  * @example
  * ```typescript
  * @Injectable()
  * class AuthGuard implements CanActivate {
  *   async canActivate(context: ExecutionContext): Promise<boolean> {
- *     const request = context.getRequest();
+ *     const request = context.switchToHttp().getRequest();
  *     const authHeader = request.headers.authorization;
  *     return !!authHeader;
  *   }
@@ -22,9 +38,17 @@ import type { Constructor } from '../types';
  */
 export interface ExecutionContext {
   /**
+   * Switch to HTTP context to access request/response
+   * 
+   * @returns HTTP arguments host
+   */
+  switchToHttp(): HttpArgumentsHost;
+
+  /**
    * Get the Fastify request object
    * 
    * @returns The current request instance
+   * @deprecated Use switchToHttp().getRequest() instead
    */
   getRequest<T = FastifyRequest>(): T;
 
@@ -32,6 +56,7 @@ export interface ExecutionContext {
    * Get the Fastify reply object
    * 
    * @returns The current reply instance
+   * @deprecated Use switchToHttp().getResponse() instead
    */
   getReply<T = FastifyReply>(): T;
 
@@ -64,12 +89,24 @@ export interface ExecutionContext {
  * @internal
  */
 export class ExecutionContextImpl implements ExecutionContext {
+  private readonly httpHost: HttpArgumentsHost;
+
   constructor(
     private readonly request: FastifyRequest,
     private readonly reply: FastifyReply,
     private readonly controllerClass: Constructor,
     private readonly handlerName: string | symbol,
-  ) {}
+  ) {
+    // Create HTTP host once
+    this.httpHost = {
+      getRequest: <T = FastifyRequest>() => this.request as T,
+      getResponse: <T = FastifyReply>() => this.reply as T,
+    };
+  }
+
+  switchToHttp(): HttpArgumentsHost {
+    return this.httpHost;
+  }
 
   getRequest<T = FastifyRequest>(): T {
     return this.request as T;

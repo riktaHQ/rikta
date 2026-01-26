@@ -100,6 +100,33 @@ class MonitorService {
 }
 ```
 
+## Interceptors
+
+Interceptors allow you to bind extra logic before/after method execution:
+
+```typescript
+import { Injectable, Interceptor, ExecutionContext, CallHandler, UseInterceptors } from '@riktajs/core';
+
+@Injectable()
+class LoggingInterceptor implements Interceptor {
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<unknown> {
+    const start = Date.now();
+    const result = await next.handle();
+    console.log(`Request took ${Date.now() - start}ms`);
+    return result;
+  }
+}
+
+@Controller('/api')
+@UseInterceptors(LoggingInterceptor)
+class ApiController {
+  @Get('/data')
+  getData() {
+    return { data: 'example' };
+  }
+}
+```
+
 ## License
 
 MIT

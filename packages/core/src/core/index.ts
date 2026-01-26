@@ -11,8 +11,10 @@ export * from './decorators';
 export * from './exceptions';
 export * from './guards';
 export * from './middleware';
+export * from './interceptors';
 export * from './config';
 export * from './metadata';
+export * from './profiler';
 
 // Re-export Zod for convenience
 // This allows users to import everything from '@riktajs/core':

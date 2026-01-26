@@ -657,3 +657,32 @@ export class TaskProcessor {
 ```
 
 All injected services are resolved through the DI container, ensuring proper lifecycle management. For more details, see the [Queues documentation](/docs/techniques/queues#dependency-injection-in-processors).
+
+## TypeScript Type System
+
+### Constructor Types
+
+Rikta exports several TypeScript utility types for working with constructors:
+
+```typescript
+import type { Constructor, AbstractConstructor, AnyConstructor } from '@riktajs/core';
+
+// Constructor<T> - concrete class constructor
+type MyConstructor = Constructor<MyService>;
+
+// AbstractConstructor<T> - abstract class constructor
+type MyAbstractConstructor = AbstractConstructor<BaseService>;
+
+// AnyConstructor<T> - either concrete or abstract
+type EitherConstructor = AnyConstructor<SomeInterface>;
+```
+
+:::info Why `any` in Constructor Types?
+You may notice that `Constructor<T = any>` uses `any` as its default generic parameter. This is intentional and necessary because:
+
+1. **reflect-metadata compatibility**: TypeScript's `Reflect.getMetadata('design:paramtypes', ...)` returns an array of `any` types
+2. **Decorator signature requirements**: TypeScript decorator signatures require `any` for proper type inference
+3. **Dynamic instantiation**: The DI container needs to handle unknown constructor parameters at runtime
+
+This is a common pattern in all major TypeScript DI frameworks (Angular, NestJS, InversifyJS).
+:::

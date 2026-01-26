@@ -427,8 +427,35 @@ class RiktaApplicationImpl implements RiktaApplication {
     return this.events;
   }
 
+  /**
+   * Get the DI Container instance
+   */
   getContainer(): Container {
     return this.container;
+  }
+
+  /**
+   * Get the Router instance
+   * Useful for accessing router cache management methods
+   */
+  getRouter(): Router {
+    return this.router;
+  }
+
+  /**
+   * Clear all router caches (guards and middleware)
+   * Useful for testing or hot-reload scenarios
+   * 
+   * @example
+   * ```typescript
+   * // In tests
+   * afterEach(() => {
+   *   app.clearRouterCaches();
+   * });
+   * ```
+   */
+  clearRouterCaches(): void {
+    this.router.clearAllCaches();
   }
 }
 

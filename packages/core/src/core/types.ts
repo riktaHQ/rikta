@@ -1,17 +1,42 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import {Container} from "@rikta/core/container";
 
+/**
+ * Generic constructor type for class instantiation
+ * 
+ * @remarks
+ * Uses `any` for args because TypeScript's reflect-metadata returns
+ * constructor parameter types as `any[]`. This is necessary for
+ * proper DI container functionality.
+ * 
+ * @typeParam T - The type of instance the constructor creates
+ * 
+ * @example
+ * ```typescript
+ * function createInstance<T>(ctor: Constructor<T>): T {
+ *   return new ctor();
+ * }
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = any> = new (...args: any[]) => T;
 
 /**
  * Type for abstract class constructors
  * Used in @Implements decorator to accept abstract classes
+ * 
+ * @typeParam T - The type of instance the constructor creates
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AbstractConstructor<T = any> = abstract new (...args: any[]) => T;
 
 /**
  * Type that accepts both concrete and abstract class constructors
+ * Useful when you need to accept either type
+ * 
+ * @typeParam T - The type of instance the constructor creates
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyConstructor<T = any> = Constructor<T> | AbstractConstructor<T>;
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD';
@@ -204,28 +229,47 @@ export type MiddlewareFunction = (
 
 /**
  * Guard interface for route protection
+ * @deprecated Use CanActivate from guards module instead
  */
 export interface Guard {
   canActivate(context: RouteContext): boolean | Promise<boolean>;
 }
 
-/**
- * Interceptor interface for request/response manipulation
- */
-export interface Interceptor {
-  intercept(context: RouteContext, next: () => Promise<unknown>): Promise<unknown>;
-}
+// Interceptor interface is now in ./interceptors/interceptor.interface.ts
+// Re-exported from ./interceptors/index.ts for convenience
 
 // Lifecycle interfaces are now in ./lifecycle/interfaces.ts
 // Re-exported from ./lifecycle/index.ts for convenience
+
+// Forward declaration to avoid circular imports
+import type { Router } from './router/router';
+import type { EventBus } from './lifecycle/event-bus';
 
 /**
  * Application instance interface
  */
 export interface RiktaApplication {
+  /** The underlying Fastify server instance */
   readonly server: FastifyInstance;
+  
+  /** Start listening for requests */
   listen(): Promise<string>;
+  
+  /** Gracefully close the application */
   close(): Promise<void>;
+  
+  /** Get the server URL after listening */
   getUrl(): string;
-  getContainer(): Container
+  
+  /** Get the DI Container instance */
+  getContainer(): Container;
+  
+  /** Get the Router instance */
+  getRouter(): Router;
+  
+  /** Get the EventBus instance */
+  getEventBus(): EventBus;
+  
+  /** Clear all router caches (guards, middleware, and interceptors) */
+  clearRouterCaches(): void;
 }

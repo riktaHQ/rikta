@@ -19,6 +19,8 @@ import { getGuardsMetadata, GuardClass } from '../guards/use-guards.decorator';
 import type { CanActivate } from '../guards/can-activate.interface';
 import { getMiddlewareMetadata, MiddlewareClass } from '../middleware/use-middleware.decorator';
 import type { RiktaMiddleware } from '../middleware/rikta-middleware.interface';
+import { getInterceptorsMetadata, InterceptorClass } from '../interceptors/use-interceptors.decorator';
+import type { Interceptor, CallHandler } from '../interceptors/interceptor.interface';
 
 /**
  * Compiled parameter extractor function type
@@ -57,6 +59,8 @@ interface CompiledParamResolver {
  * Performance optimizations:
  * - Pre-compiled parameter extractors
  * - Guard instance caching
+ * - Middleware instance caching
+ * - Interceptor instance caching
  * - Fast path for simple routes
  */
 export class Router {
@@ -65,12 +69,70 @@ export class Router {
   
   /** Cache for middleware instances (singleton per middleware class) */
   private readonly middlewareCache = new Map<MiddlewareClass, RiktaMiddleware>();
+
+  /** Cache for interceptor instances (singleton per interceptor class) */
+  private readonly interceptorCache = new Map<InterceptorClass, Interceptor>();
   
   constructor(
     private readonly server: FastifyInstance,
     private readonly container: Container,
     private readonly globalPrefix: string = ''
   ) {}
+
+  /**
+   * Clear the guard instance cache
+   * Useful for testing when you need fresh guard instances
+   */
+  clearGuardCache(): void {
+    this.guardCache.clear();
+  }
+
+  /**
+   * Clear the middleware instance cache
+   * Useful for testing when you need fresh middleware instances
+   */
+  clearMiddlewareCache(): void {
+    this.middlewareCache.clear();
+  }
+
+  /**
+   * Clear the interceptor instance cache
+   * Useful for testing when you need fresh interceptor instances
+   */
+  clearInterceptorCache(): void {
+    this.interceptorCache.clear();
+  }
+
+  /**
+   * Clear all caches (guards, middleware, and interceptors)
+   * Useful for testing or hot-reload scenarios
+   */
+  clearAllCaches(): void {
+    this.guardCache.clear();
+    this.middlewareCache.clear();
+    this.interceptorCache.clear();
+  }
+
+  /**
+   * Get the number of cached guard instances
+   */
+  getGuardCacheSize(): number {
+    return this.guardCache.size;
+  }
+
+  /**
+   * Get the number of cached middleware instances
+   */
+  getMiddlewareCacheSize(): number {
+    return this.middlewareCache.size;
+  }
+
+  /**
+   * Get the number of cached interceptor instances
+   */
+  getInterceptorCacheSize(): number {
+    return this.interceptorCache.size;
+  }
 
   /**
    * Register all routes from a controller
@@ -136,6 +198,9 @@ export class Router {
     // Get middleware for this route (controller-level + method-level)
     const middleware = getMiddlewareMetadata(controllerClass, route.handlerName);
 
+    // Get interceptors for this route (controller-level + method-level)
+    const interceptors = getInterceptorsMetadata(controllerClass, route.handlerName);
+
     // ============================================
     // OPTIMIZATION: Pre-compile parameter resolvers
     // ============================================
@@ -161,8 +226,14 @@ export class Router {
     const middlewareInstances = this.resolveMiddlewareInstances(middleware);
     const hasMiddleware = middlewareInstances.length > 0;
 
-    // Pre-create execution context factory (needed for guards or custom params)
-    const needsContext = hasGuards || hasCustomParams;
+    // ============================================
+    // OPTIMIZATION: Pre-resolve interceptor instances
+    // ============================================
+    const interceptorInstances = this.resolveInterceptorInstances(interceptors);
+    const hasInterceptors = interceptorInstances.length > 0;
+
+    // Pre-create execution context factory (needed for guards, interceptors, or custom params)
+    const needsContext = hasGuards || hasCustomParams || hasInterceptors;
     const createContext = needsContext
       ? (req: FastifyRequest, rep: FastifyReply) => 
           new ExecutionContextImpl(req, rep, controllerClass, route.handlerName)
@@ -170,7 +241,7 @@ export class Router {
 
     // Inner handler logic (extracted for request scope wrapping)
     const executeHandler = async (request: FastifyRequest, reply: FastifyReply) => {
-      // Create execution context if needed (shared between guards and custom params)
+      // Create execution context if needed (shared between guards, interceptors, and custom params)
       const executionContext = createContext ? createContext(request, reply) : null;
       
       // 1. Execute guards (if any)
@@ -183,24 +254,40 @@ export class Router {
         await this.executeMiddlewareChain(middlewareInstances, request, reply);
       }
       
-      // 3. Resolve params and execute handler
-      let args: unknown[] | undefined;
-      if (hasParams) {
-        args = await this.resolveAllParams(
-          compiledResolvers,
-          customParamsMeta,
-          maxParamIndex,
-          request,
-          reply,
-          executionContext
+      // 3. Prepare the core handler function
+      const coreHandler = async (): Promise<unknown> => {
+        let args: unknown[] | undefined;
+        if (hasParams) {
+          args = await this.resolveAllParams(
+            compiledResolvers,
+            customParamsMeta,
+            maxParamIndex,
+            request,
+            reply,
+            executionContext
+          );
+        }
+        
+        const result = args
+          ? await handler.apply(controllerInstance, args)
+          : await handler.call(controllerInstance);
+        
+        return result;
+      };
+
+      // 4. Execute with interceptors or directly
+      let result: unknown;
+      if (hasInterceptors && executionContext) {
+        result = await this.executeInterceptorChain(
+          interceptorInstances,
+          executionContext,
+          coreHandler
         );
+      } else {
+        result = await coreHandler();
       }
       
-      const result = args
-        ? await handler.apply(controllerInstance, args)
-        : await handler.call(controllerInstance);
-      
-      // 4. Set status code if specified
+      // 5. Set status code if specified
       if (statusCode) reply.status(statusCode);
       
       return result;
@@ -447,6 +534,69 @@ export class Router {
     };
 
     await next();
+  }
+
+  /**
+   * OPTIMIZATION: Pre-resolve interceptor instances at route registration
+   */
+  private resolveInterceptorInstances(interceptors: InterceptorClass[]): Interceptor[] {
+    return interceptors.map(InterceptorClass => {
+      // Check cache first
+      let instance = this.interceptorCache.get(InterceptorClass);
+      if (instance) return instance;
+
+      // Resolve from container
+      try {
+        instance = this.container.resolve(InterceptorClass) as Interceptor;
+      } catch (error) {
+        throw new Error(
+          `Failed to resolve interceptor ${InterceptorClass.name}. ` +
+          `Make sure it is decorated with @Injectable(). ` +
+          `Original error: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+
+      // Verify interface
+      if (typeof instance.intercept !== 'function') {
+        throw new Error(
+          `${InterceptorClass.name} does not implement Interceptor interface. ` +
+          `The interceptor must have an intercept(context, next) method.`
+        );
+      }
+
+      // Cache for future use
+      this.interceptorCache.set(InterceptorClass, instance);
+      return instance;
+    });
+  }
+
+  /**
+   * Execute interceptor chain
+   * Each interceptor wraps around the next, creating an onion-like execution
+   */
+  private async executeInterceptorChain(
+    interceptorInstances: Interceptor[],
+    context: ExecutionContext,
+    coreHandler: () => Promise<unknown>
+  ): Promise<unknown> {
+    // Build the chain from the inside out
+    // Last interceptor wraps the core handler
+    // First interceptor is the outermost wrapper
+    let handler = coreHandler;
+
+    for (let i = interceptorInstances.length - 1; i >= 0; i--) {
+      const interceptor = interceptorInstances[i];
+      const nextHandler = handler;
+      
+      handler = () => {
+        const callHandler: CallHandler = {
+          handle: () => nextHandler()
+        };
+        return interceptor.intercept(context, callHandler);
+      };
+    }
+
+    return handler();
   }
 
   /**
