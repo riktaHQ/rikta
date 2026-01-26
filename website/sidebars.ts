@@ -24,6 +24,8 @@ const sidebars: SidebarsConfig = {
       items: [
         'fundamentals/dependency-injection',
         'fundamentals/configuration',
+        'fundamentals/application-options',
+        'fundamentals/interceptors',
         'fundamentals/lifecycle-events',
         'fundamentals/testing',
       ],
