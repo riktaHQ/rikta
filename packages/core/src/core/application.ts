@@ -67,7 +67,12 @@ export class RiktaFactory {
       const patterns = Array.isArray(config.autowired) && config.autowired.length > 0 
         ? config.autowired 
         : ['./**'];
-      discoveredFiles = await discoverModules(patterns, callerDir);
+      discoveredFiles = await discoverModules({
+        patterns,
+        cwd: callerDir,
+        strict: config.strictDiscovery ?? false,
+        onImportError: config.onDiscoveryError,
+      });
     }
     
     const app = new RiktaApplicationImpl(config);
@@ -82,7 +87,7 @@ export class RiktaFactory {
 class RiktaApplicationImpl implements RiktaApplication {
   readonly server: FastifyInstance;
   private readonly container: Container;
-  private readonly config: Required<Omit<RiktaConfig, 'controllers' | 'providers' | 'autowired' | 'exceptionFilter' | 'exceptionFilters'>> & Pick<RiktaConfig, 'controllers' | 'providers' | 'exceptionFilter' | 'exceptionFilters'> & { silent: boolean };
+  private readonly config: Required<Omit<RiktaConfig, 'controllers' | 'providers' | 'autowired' | 'exceptionFilter' | 'exceptionFilters' | 'strictDiscovery' | 'onDiscoveryError'>> & Pick<RiktaConfig, 'controllers' | 'providers' | 'exceptionFilter' | 'exceptionFilters'> & { silent: boolean };
   private readonly router: Router;
   private readonly events: EventBus;
   private readonly initializedProviders: Array<{ instance: unknown; priority: number; name: string }> = [];
@@ -290,6 +295,7 @@ class RiktaApplicationImpl implements RiktaApplication {
 
   /**
    * Register @On() decorated methods as event listeners
+   * Tracks listeners by provider name for cleanup during shutdown
    */
   private registerEventListeners(target: Constructor, instance: unknown): void {
     const metadata: OnEventMetadata[] = 
@@ -298,7 +304,8 @@ class RiktaApplicationImpl implements RiktaApplication {
     for (const { event, methodName } of metadata) {
       const method = (instance as Record<string, Function>)[methodName];
       if (typeof method === 'function') {
-        this.events.on(event, method.bind(instance));
+        // Register with owner tracking for cleanup
+        this.events.on(event, method.bind(instance), target.name);
       }
     }
   }
@@ -376,7 +383,7 @@ class RiktaApplicationImpl implements RiktaApplication {
     // Call hooks in REVERSE priority order
     const reversed = [...this.initializedProviders].reverse();
     
-    for (const { instance } of reversed) {
+    for (const { instance, name } of reversed) {
       // Call onApplicationShutdown
       if (this.hasHook(instance, 'onApplicationShutdown')) {
         await (instance as OnApplicationShutdown).onApplicationShutdown(signal);
@@ -386,6 +393,9 @@ class RiktaApplicationImpl implements RiktaApplication {
       if (this.hasHook(instance, 'onProviderDestroy')) {
         await (instance as OnProviderDestroy).onProviderDestroy();
       }
+      
+      // Cleanup event listeners registered by this provider
+      this.events.removeByOwner(name);
     }
 
     // Close Fastify
@@ -396,6 +406,9 @@ class RiktaApplicationImpl implements RiktaApplication {
     await this.events.emit('app:destroy', { 
       uptime: Date.now() - this.startTime 
     });
+    
+    // Final cleanup - clear all remaining listeners
+    this.events.clear();
 
     if (!this.config.silent) console.log('\n👋 Application closed\n');
   }

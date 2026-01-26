@@ -47,3 +47,10 @@ export {
   ConfigProviderNotFoundException,
   ConfigProviderInstantiationException,
 } from './config.exceptions';
+
+// Discovery Exceptions
+export {
+  DiscoveryException,
+  DiscoveryFailure,
+  DiscoveryOptions,
+} from './discovery.exception';

@@ -395,3 +395,157 @@ export class UserService implements OnProviderInit {
   async onProviderInit() { /* Database already connected */ }
 }
 ```
+
+## EventBus
+
+The EventBus provides a flexible pub/sub mechanism for lifecycle and custom events. It works alongside interface-based hooks.
+
+### Basic Usage
+
+```typescript
+import { Injectable, Autowired, EventBus } from '@riktajs/core';
+
+@Injectable()
+export class MonitoringService {
+  @Autowired()
+  private events!: EventBus;
+
+  onProviderInit() {
+    // Subscribe to lifecycle events
+    this.events.on('app:listen', ({ address, port }) => {
+      console.log(`Server started at ${address}:${port}`);
+    });
+
+    this.events.on('app:shutdown', ({ signal }) => {
+      console.log(`Shutdown signal: ${signal}`);
+    });
+  }
+}
+```
+
+### Built-in Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `app:discovery` | `{ files: string[] }` | After auto-discovery completes |
+| `app:providers` | `{ count: number }` | After providers are registered |
+| `provider:init` | `{ provider, name, priority }` | When a provider is initialized |
+| `app:routes` | `{ count: number }` | After routes are registered |
+| `app:bootstrap` | `{ providerCount: number }` | Application bootstrap complete |
+| `app:listen` | `{ address, port }` | Server starts listening |
+| `app:shutdown` | `{ signal?: string }` | Shutdown initiated |
+| `provider:destroy` | `{ provider, name }` | Provider being destroyed |
+| `app:destroy` | `{ uptime: number }` | Application fully shut down |
+
+### Unsubscribing
+
+The `on()` method returns an unsubscribe function:
+
+```typescript
+const unsubscribe = this.events.on('app:listen', () => {
+  console.log('Server started');
+});
+
+// Later, to stop listening:
+unsubscribe();
+```
+
+### One-time Listeners
+
+Use `once()` to automatically unsubscribe after the first event:
+
+```typescript
+this.events.once('app:listen', ({ address }) => {
+  console.log(`First start at ${address}`);
+  // Automatically unsubscribed after this
+});
+```
+
+### Promise-based Waiting
+
+Use `waitFor()` to await an event:
+
+```typescript
+async function waitForReady() {
+  const { address } = await events.waitFor('app:listen');
+  console.log(`App is ready at ${address}`);
+}
+```
+
+### Custom Events
+
+You can emit and listen to custom events:
+
+```typescript
+// Emit custom event
+await this.events.emit('user:created', { userId: '123', email: 'user@example.com' });
+
+// Listen to custom event
+this.events.on<{ userId: string; email: string }>('user:created', ({ userId, email }) => {
+  console.log(`New user: ${email}`);
+});
+```
+
+### Owner Tracking and Cleanup
+
+EventBus supports owner tracking for automatic cleanup. When registering listeners, you can specify an owner:
+
+```typescript
+// Register with owner tracking
+this.events.on('custom:event', handler, 'MyService');
+
+// Remove all listeners for an owner
+this.events.removeByOwner('MyService');
+```
+
+:::info Automatic Cleanup
+When using the `@On()` decorator, Rikta automatically tracks listeners by provider name and cleans them up during application shutdown. This prevents memory leaks from accumulated listeners.
+:::
+
+### Debugging EventBus
+
+Useful methods for debugging:
+
+```typescript
+// Get listener count for specific event
+const count = events.listenerCount('app:listen');
+
+// Get total listeners across all events
+const total = events.totalListenerCount();
+
+// Get all registered owners
+const owners = events.getOwners();
+
+// Get listener count by owner
+const ownerCount = events.listenerCountByOwner('MyService');
+```
+
+### Using @On() Decorator
+
+The `@On()` decorator provides a declarative way to subscribe to events:
+
+```typescript
+import { Injectable, On } from '@riktajs/core';
+
+@Injectable()
+export class LoggingService {
+  @On('app:listen')
+  onAppListen({ address }: { address: string }) {
+    console.log(`Application started at ${address}`);
+  }
+
+  @On('app:shutdown')
+  onAppShutdown({ signal }: { signal?: string }) {
+    console.log(`Shutting down: ${signal}`);
+  }
+
+  @On('provider:init')
+  onProviderInit({ name }: { name: string }) {
+    console.log(`Provider initialized: ${name}`);
+  }
+}
+```
+
+:::tip Memory Management
+Listeners registered with `@On()` are automatically cleaned up when the application shuts down, preventing memory leaks.
+:::

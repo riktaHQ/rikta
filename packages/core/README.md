@@ -49,6 +49,57 @@ await app.listen();
 - 📦 Built-in Dependency Injection
 - ✅ Zod Validation Integration
 
+## Provider Scopes
+
+Rikta supports three provider scopes:
+
+```typescript
+// Singleton (default) - shared instance
+@Injectable()
+class ConfigService {}
+
+// Transient - new instance each time
+@Injectable({ scope: 'transient' })
+class RequestLogger {}
+
+// Request - one instance per HTTP request
+@Injectable({ scope: 'request' })
+class RequestContext {}
+```
+
+## Strict Discovery Mode
+
+Enable strict discovery to catch import errors early:
+
+```typescript
+const app = await Rikta.create({
+  strictDiscovery: process.env.NODE_ENV !== 'production',
+  onDiscoveryError: (file, error) => {
+    console.warn(`Failed to import: ${file}`);
+  },
+});
+```
+
+## EventBus
+
+The EventBus provides pub/sub for lifecycle events:
+
+```typescript
+import { Injectable, Autowired, EventBus } from '@riktajs/core';
+
+@Injectable()
+class MonitorService {
+  @Autowired()
+  private events!: EventBus;
+
+  onProviderInit() {
+    this.events.on('app:listen', ({ address }) => {
+      console.log(`Server at ${address}`);
+    });
+  }
+}
+```
+
 ## License
 
 MIT

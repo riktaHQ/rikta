@@ -119,6 +119,40 @@ export interface RiktaConfig {
    * ```
    */
   autowired?: string[] | false;
+
+  /**
+   * Enable strict discovery mode.
+   * When true, throws DiscoveryException if any module fails to import.
+   * When false (default), logs warnings and continues.
+   * 
+   * Recommended: Enable in development to catch import errors early.
+   * 
+   * @default false
+   * 
+   * @example
+   * ```typescript
+   * const app = await Rikta.create({
+   *   strictDiscovery: process.env.NODE_ENV !== 'production',
+   * });
+   * ```
+   */
+  strictDiscovery?: boolean;
+
+  /**
+   * Callback invoked when a module fails to import during discovery.
+   * Called regardless of strictDiscovery setting.
+   * Useful for custom logging or error tracking.
+   * 
+   * @example
+   * ```typescript
+   * const app = await Rikta.create({
+   *   onDiscoveryError: (filePath, error) => {
+   *     logger.warn(`Failed to import ${filePath}`, error);
+   *   },
+   * });
+   * ```
+   */
+  onDiscoveryError?: (filePath: string, error: Error) => void;
   
   /**
    * Explicit list of controllers to register.

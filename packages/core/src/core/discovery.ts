@@ -1,6 +1,7 @@
 import fg from 'fast-glob';
 import fs from 'fs/promises';
 import path from 'path';
+import { DiscoveryException, DiscoveryFailure, DiscoveryOptions } from './exceptions/discovery.exception';
 
 /**
  * Default patterns to exclude from discovery
@@ -73,31 +74,47 @@ async function containsRiktaDecorators(filePath: string): Promise<boolean> {
  * 
  * Only imports files that contain @Controller, @Injectable, or @Provider decorators.
  * 
- * @param patterns - Glob patterns or directory paths to search for files (default: ['./**'])
- * @param cwd - Base directory for pattern matching. If not provided, it will be
- *              automatically resolved from the caller's location (useful when rikta-core
- *              is used as an external library from node_modules)
+ * @param options - Discovery options or glob patterns for backward compatibility
+ * @param cwd - Base directory (deprecated, use options.cwd instead)
  * @returns Promise resolving to list of imported files
  * 
  * @example
  * ```typescript
  * // Scan specific directories (relative paths resolved from caller's location)
- * await discoverModules(['./src/controllers', './src/services']);
+ * await discoverModules({ patterns: ['./src/controllers', './src/services'] });
  * 
- * // Scan with absolute path
- * await discoverModules(['/absolute/path/to/src']);
+ * // Enable strict mode to throw on import errors
+ * await discoverModules({ 
+ *   patterns: ['./src'],
+ *   strict: true 
+ * });
  * 
- * // Scan everything (default)
- * await discoverModules();
+ * // With error callback
+ * await discoverModules({
+ *   patterns: ['./src'],
+ *   onImportError: (file, err) => console.warn(`Failed: ${file}`)
+ * });
+ * 
+ * // Legacy API (still supported)
+ * await discoverModules(['./src/controllers'], '/path/to/project');
  * ```
  */
 export async function discoverModules(
-  patterns: string[] = ['./**/*.{ts,js}'],
+  optionsOrPatterns: DiscoveryOptions | string[] = ['./**/*.{ts,js}'],
   cwd?: string
 ): Promise<string[]> {
+  // Normalize input to DiscoveryOptions
+  const options: DiscoveryOptions = Array.isArray(optionsOrPatterns)
+    ? { patterns: optionsOrPatterns, cwd }
+    : optionsOrPatterns;
+
+  const patterns = options.patterns ?? ['./**/*.{ts,js}'];
+  const strict = options.strict ?? false;
+  const onImportError = options.onImportError;
+  
   // If no cwd provided, use the entry point directory (where the main script is)
   // This is crucial when rikta-core is installed in node_modules
-  const baseDir = cwd ?? getEntryPointDirectory();
+  const baseDir = options.cwd ?? cwd ?? getEntryPointDirectory();
   
   // Resolve the base directory to absolute if needed
   const absoluteBaseDir = path.isAbsolute(baseDir) 
@@ -136,17 +153,17 @@ export async function discoverModules(
     onlyFiles: true,
   });
 
-  // Filter files that contain Rikta decorators
-  const riktaFiles: string[] = [];
-  
-  for (const file of files) {
-    if (await containsRiktaDecorators(file)) {
-      riktaFiles.push(file);
-    }
-  }
+  // Filter files that contain Rikta decorators (parallelized for performance)
+  const decoratorChecks = await Promise.all(
+    files.map(async file => ({ file, hasDecorators: await containsRiktaDecorators(file) }))
+  );
+  const riktaFiles = decoratorChecks
+    .filter(({ hasDecorators }) => hasDecorators)
+    .map(({ file }) => file);
 
   // Import only files with decorators
   const importedFiles: string[] = [];
+  const failedImports: DiscoveryFailure[] = [];
   
   for (const file of riktaFiles) {
     try {
@@ -154,12 +171,25 @@ export async function discoverModules(
       const importPath = file.replace(/\.ts$/, '');
       await import(importPath);
       importedFiles.push(file);
-    } catch (error) {
-      // Log but don't fail - some files might have import errors
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      
+      // Call error callback if provided
+      onImportError?.(file, error);
+      
+      // Log in debug mode
       if (process.env.DEBUG) {
-        console.warn(`[Rikta] Failed to import ${file}:`, error);
+        console.warn(`[Rikta] Failed to import ${file}:`, error.message);
       }
+      
+      // Track failure for strict mode
+      failedImports.push({ filePath: file, error });
     }
+  }
+
+  // In strict mode, throw if any imports failed
+  if (strict && failedImports.length > 0) {
+    throw new DiscoveryException(failedImports);
   }
 
   return importedFiles;

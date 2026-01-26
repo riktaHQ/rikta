@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Container } from '../container/container';
+import { requestScopeStorage } from '../container/request-scope';
 import { 
   CONTROLLER_METADATA, 
   ROUTES_METADATA, 
@@ -18,6 +19,11 @@ import { getGuardsMetadata, GuardClass } from '../guards/use-guards.decorator';
 import type { CanActivate } from '../guards/can-activate.interface';
 import { getMiddlewareMetadata, MiddlewareClass } from '../middleware/use-middleware.decorator';
 import type { RiktaMiddleware } from '../middleware/rikta-middleware.interface';
+
+/**
+ * Compiled parameter extractor function type
+ * Pre-compiled for maximum performance
+ */
 
 /**
  * Compiled parameter extractor function type
@@ -162,8 +168,8 @@ export class Router {
           new ExecutionContextImpl(req, rep, controllerClass, route.handlerName)
       : null;
 
-    // Unified route handler
-    const routeHandler: CompiledHandler = async (request, reply) => {
+    // Inner handler logic (extracted for request scope wrapping)
+    const executeHandler = async (request: FastifyRequest, reply: FastifyReply) => {
       // Create execution context if needed (shared between guards and custom params)
       const executionContext = createContext ? createContext(request, reply) : null;
       
@@ -198,6 +204,11 @@ export class Router {
       if (statusCode) reply.status(statusCode);
       
       return result;
+    };
+
+    // Unified route handler - wraps execution in request scope for request-scoped DI
+    const routeHandler: CompiledHandler = async (request, reply) => {
+      return requestScopeStorage.runAsync(() => executeHandler(request, reply));
     };
 
     // Register with Fastify

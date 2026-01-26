@@ -5,6 +5,7 @@ import { Token, InjectionToken, ProviderDefinition, ValueProvider, FactoryProvid
 import { AutowiredMetadata } from '../decorators/autowired.decorator';
 import { registry } from '../registry';
 import { isAbstractClass } from './abstract-class.utils';
+import { requestScopeStorage } from './request-scope';
 
 /**
  * Dependency Injection Container
@@ -12,7 +13,7 @@ import { isAbstractClass } from './abstract-class.utils';
  * Manages the lifecycle of injectable services with support for:
  * - Singleton scope (default): One instance shared across the app
  * - Transient scope: New instance on each injection
- * - Request scope: New instance per request (TODO: implement with AsyncLocalStorage)
+ * - Request scope: New instance per HTTP request (via AsyncLocalStorage)
  * - Property injection (autowire)
  * - Token-based injection
  * - Value and factory providers
@@ -272,6 +273,23 @@ export class Container {
       return this.singletons.get(target) as T;
     }
 
+    // Handle request scope
+    if (scope === 'request') {
+      // Check if we're in a request context
+      if (!requestScopeStorage.isInRequestScope()) {
+        throw new Error(
+          `Cannot resolve request-scoped provider '${target.name}' outside of a request context. ` +
+          `Request-scoped providers can only be resolved during HTTP request handling.`
+        );
+      }
+      
+      // Check if instance already exists in current request
+      const existingInstance = requestScopeStorage.get(target);
+      if (existingInstance !== undefined) {
+        return existingInstance as T;
+      }
+    }
+
     // Add to resolution stack
     this.resolutionStack.add(target);
 
@@ -337,10 +355,14 @@ export class Container {
       // Handle property injection (autowire)
       this.injectProperties(target, instance);
 
-      // Store singleton
+      // Store based on scope
       if (scope === 'singleton') {
         this.singletons.set(target, instance);
+      } else if (scope === 'request') {
+        // Store in request-scoped storage
+        requestScopeStorage.set(target, instance);
       }
+      // transient scope: no caching, new instance every time
 
       return instance;
     } finally {

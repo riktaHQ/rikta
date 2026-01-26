@@ -97,6 +97,64 @@ export class RequestLogger {
 }
 ```
 
+### Request Scope
+
+Create a new instance for each HTTP request. The same instance is reused within a single request context, which is useful for request-specific services:
+
+```typescript
+import { Injectable } from '@riktajs/core';
+
+@Injectable({ scope: 'request' })
+export class RequestContext {
+  public requestId = crypto.randomUUID();
+  public startTime = Date.now();
+  public userId?: string;
+}
+
+@Controller('/orders')
+export class OrderController {
+  @Autowired()
+  private requestContext!: RequestContext;
+
+  @Autowired()
+  private orderService!: OrderService;
+
+  @Get('/')
+  async getOrders() {
+    // Same RequestContext instance throughout this request
+    console.log(`Request ${this.requestContext.requestId}`);
+    return this.orderService.findAll();
+  }
+}
+
+@Injectable()
+export class OrderService {
+  @Autowired()
+  private requestContext!: RequestContext;
+
+  async findAll() {
+    // Same RequestContext instance as in the controller!
+    console.log(`Processing in request ${this.requestContext.requestId}`);
+    return [];
+  }
+}
+```
+
+:::info How Request Scope Works
+Request scope uses Node.js `AsyncLocalStorage` to maintain a request-specific context. This means:
+- Each HTTP request gets its own instance
+- The same instance is shared across all services within that request
+- Instances are automatically cleaned up when the request completes
+- Works correctly with async/await operations
+:::
+
+:::tip Use Cases for Request Scope
+- **Request logging**: Track a request ID across all service calls
+- **User context**: Store authenticated user info accessible everywhere
+- **Transaction management**: Share a database transaction across services
+- **Performance tracking**: Measure timing across the request lifecycle
+:::
+
 ## Injection Tokens
 
 For injecting non-class values (strings, numbers, objects), use **injection tokens**:
