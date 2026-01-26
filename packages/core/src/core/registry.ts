@@ -255,82 +255,16 @@ class Registry {
   }
 
   /**
-   * Get all implementations for an abstract class
+   * Get all implementations for an abstract class.
+   * 
+   * This method only returns the raw metadata - resolution logic 
+   * (deciding which implementation to use) belongs in the Container.
    * 
    * @param abstractClass - The abstract class to look up
    * @returns Array of implementation info, or empty array if none
    */
   getImplementations(abstractClass: Constructor): AbstractImplementation[] {
     return this.abstractImplementations.get(abstractClass) ?? [];
-  }
-
-  /**
-   * Get the primary (or only) implementation for an abstract class
-   * 
-   * Resolution order:
-   * 1. If there's a @Primary implementation, return it
-   * 2. If there's only one implementation, return it
-   * 3. If there are multiple without @Primary, throw error
-   * 4. If there are none, return undefined
-   * 
-   * @param abstractClass - The abstract class to resolve
-   * @param name - Optional name to resolve a specific named implementation
-   * @returns The implementation class, or undefined if none
-   * @throws Error if multiple implementations exist without a @Primary
-   */
-  resolveImplementation(abstractClass: Constructor, name?: string): Constructor | undefined {
-    const implementations = this.abstractImplementations.get(abstractClass);
-    
-    if (!implementations || implementations.length === 0) {
-      return undefined;
-    }
-
-    // If a name is specified, look for that specific implementation
-    if (name) {
-      const named = implementations.find(i => i.name === name);
-      if (named) {
-        return named.implementation;
-      }
-      throw new Error(
-        `No implementation named '${name}' found for abstract class ${abstractClass.name}. ` +
-        `Available names: ${implementations.filter(i => i.name).map(i => i.name).join(', ') || 'none'}`
-      );
-    }
-
-    // If only one implementation, return it
-    if (implementations.length === 1) {
-      return implementations[0].implementation;
-    }
-
-    // Look for primary
-    const primary = implementations.find(i => i.isPrimary);
-    if (primary) {
-      return primary.implementation;
-    }
-
-    // Multiple implementations without primary - error
-    const implNames = implementations.map(i => i.implementation.name).join(', ');
-    throw new Error(
-      `Multiple implementations found for abstract class ${abstractClass.name}: ${implNames}. ` +
-      `Use @Primary() to mark one as the default, or @Named() for qualified injection.`
-    );
-  }
-
-  /**
-   * Get an implementation by name
-   * 
-   * @param abstractClass - The abstract class
-   * @param name - The implementation name
-   * @returns The named implementation, or undefined if not found
-   */
-  getNamedImplementation(abstractClass: Constructor, name: string): Constructor | undefined {
-    const implementations = this.abstractImplementations.get(abstractClass);
-    if (!implementations) {
-      return undefined;
-    }
-    
-    const named = implementations.find(i => i.name === name);
-    return named?.implementation;
   }
 
   /**
