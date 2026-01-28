@@ -4,7 +4,12 @@
  * Utilities for converting Zod schemas to JSON Schema format
  * compatible with @platformatic/mcp.
  */
-import { z, type ZodType } from 'zod';
+import { z } from 'zod';
+
+/**
+ * Zod schema type (compatible with zod v4)
+ */
+type ZodType = z.core.$ZodType;
 
 /**
  * JSON Schema type (simplified)
@@ -16,7 +21,7 @@ export type JsonSchema = Record<string, unknown>;
  * Uses duck typing to detect Zod schemas without requiring the full library
  * Compatible with both Zod v3 (_def) and Zod v4 (_zod)
  */
-export function isZodSchema(value: unknown): value is ZodType<unknown> {
+export function isZodSchema(value: unknown): value is ZodType {
   return (
     value !== null &&
     typeof value === 'object' &&

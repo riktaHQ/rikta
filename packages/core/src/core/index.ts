@@ -20,7 +20,7 @@ export * from './profiler/index.js';
 // This allows users to import everything from '@riktajs/core':
 // import { z, Body, Controller } from '@riktajs/core';
 export { z } from 'zod';
-export type { ZodType, ZodSchema, ZodError, ZodIssue, infer as ZodInfer } from 'zod';
+export type { ZodError, ZodIssue, infer as ZodInfer, input as ZodInput, output as ZodOutput } from 'zod';
 
 // Re-export Fastify types for convenience
 // This allows users to import Fastify types directly from '@riktajs/core':
